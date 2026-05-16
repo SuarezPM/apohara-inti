@@ -594,3 +594,128 @@ cd deploy && docker-compose config --quiet      # exit 0
   attacker grid is post-sprint hardening).
 - Replacing the VeeaONE stub with a real TerraFabric client (requires
   Veea API credentials we do not have).
+
+---
+
+## 7. 🟢 Live deployment — Vultr backend + same-origin frontend (2026-05-16, Day-6 US-010)
+
+End-to-end production deployment so TechEx 2026 Track 1 judges can
+click a single URL and exercise the verify flow without local setup.
+The Day-5 apohara-aegis cloud-init pattern was reused (same Ubuntu
+24.04 + Caddy auto-TLS shape), adapted to the Inti stack
+(uvicorn+systemd instead of docker-compose, since Inti's backend has
+no native container and the dep set is small enough to run directly
+in a venv).
+
+### (a) Live URLs
+
+| Surface | URL | Status |
+|---|---|---|
+| Frontend (React SPA) | <https://149.28.56.91.nip.io/> | 🟢 200 OK |
+| Backend `/health` | <https://149.28.56.91.nip.io/health> | 🟢 200 OK, `{"status":"ok","deps":{"aegis":"loaded","contextforge":"loaded"}}` |
+| Backend `/v1/verify` | <https://149.28.56.91.nip.io/v1/verify> | 🟢 200 OK, p50 ≈ 40 s (9-attacker ensemble) |
+| Backend `/v1/audit/{id}` | <https://149.28.56.91.nip.io/v1/audit/...> | 🟢 200 OK by signed_hash, 404 on miss |
+
+The full smoke-probe outcomes are committed at
+`logs/deploy_smoke_1778942331.json` (4 probes, all green, verdict
+`verified`, 9 attackers, INV-15 enforced, signed hash). Browser smoke
+captured at `docs/ui-screenshots/live-demo-verified.png` (Verified
+panel, 9 attacker cards all green, Memory Plane "Powered by
+ContextForge" header).
+
+### (b) Partial deploys + fallbacks
+
+1. **Frontend manual-Vercel path documented, NOT executed.**
+   `packages/frontend/vercel.json` and
+   `packages/frontend/.env.production` are committed so Pablo can run
+   `vercel deploy --prod` from his laptop and get the prettier
+   `apohara-inti.vercel.app` subdomain. The CLI requires interactive
+   OAuth (`npx vercel whoami` prompts a device-code flow) which the
+   automation could not complete. As fallback, the same React bundle
+   that would ship to Vercel is served by Caddy on the Vultr droplet —
+   single origin, no CORS preflight needed, identical UX.
+
+2. **cloud-init bootstrap failed on first run** due to
+   `apohara-aegis/pyproject.toml` flat-layout package discovery
+   (root has `logs/`, `deploy/`, `assets/`, `configs/`,
+   `apohara_aegis/` and no `[tool.setuptools]` block). Fix landed in
+   commit `eff9b38` — bypass `pip install -e backend`, clone aegis +
+   contextforge as sibling repos, add them to PYTHONPATH on the
+   systemd unit. Upstream follow-up tracked in apohara-aegis backlog
+   (`tool.setuptools.packages = ["apohara_aegis"]`), not blocking.
+
+3. **systemd ProtectHome=read-only blocked ledger writes** to
+   `/root/.apohara-inti/`. Fixed by setting `HOME=/var/lib/apohara-inti`
+   + `ReadWritePaths=/var/lib/apohara-inti` on the unit. The
+   cloud-init template ships with these settings so a fresh
+   reprovision boots clean.
+
+4. **Backend schema field mismatch** (`VerifyRequest.task_input` vs
+   frontend `code`) surfaced as a 422 during the browser smoke test.
+   Fixed by adding `validation_alias=AliasChoices("task_input","code")`
+   + `populate_by_name=True` to the pydantic model — both names now
+   accepted, no breaking change to existing callers. Frontend types.ts
+   stays unchanged (US-007 scope).
+
+### (c) Cost spent on Vultr
+
+* Plan: `vc2-1c-2gb` (1 vCPU / 2 GB RAM / 50 GB SSD)
+* Region: `ewr` (Piscataway, NJ — New York metro)
+* Hourly rate: **\$0.014/hr → \$0.336/day → ~\$1.40 for the 4-day
+  sprint window**
+* Cap: **well below the US-010 \$5/day ceiling** (≈ 7 % of the budget)
+* Account balance at provision time: \$200 prepayment remaining,
+  \$0.71 pending charges
+* Idempotency: `deploy/vultr_provision.py --destroy` tears down the
+  tagged instance for a clean spend at the end of the demo window
+
+### (d) Day-5 deployment-pattern reuse
+
+The provisioner and cloud-init in this story were forked from
+apohara-aegis's `deploy/vultr_provision.py` + `deploy/cloud-init.yaml`
+(commits `7466f87` onwards). What stayed identical: the API auth
+header shape, the idempotent tag-based lookup, the IP-discovery via
+`api.ipify.org`, the nip.io wildcard pattern for Let's Encrypt, the
+UFW lockdown to 22/80/443, the disable-root-login + non-root-sudoer
+posture, the 0600 root:root `.env` file. What changed: docker-compose
+→ venv+systemd (Inti has no container today); separate vendor-key set
+(no judge-basicauth, no `AEGIS_JUDGE_*`); a 5-tier `_mask()` log line
+for each substituted secret; sibling-repo clone of aegis + ctxforge
+in PYTHONPATH instead of `pip install -e`.
+
+### (e) Files added or changed in this story
+
+```text
+deploy/cloud-init.yaml            (new, 251 lines — bootstrap recipe)
+deploy/vultr_provision.py         (new, 371 lines — provisioner)
+deploy/smoke_test.py              (new, 199 lines — 4-probe test)
+deploy/README.md                  (new, ~115 lines — operator quickstart)
+packages/backend/main.py          (+47/-2 lines — CORS + alias fields)
+packages/frontend/vercel.json     (new, 54 lines — Vercel config)
+packages/frontend/.env.production (new, 13 lines — VITE_API_URL)
+README.md                         (+18 lines — Try it live section)
+docs/ui-screenshots/
+  live-demo-landing.png           (new — empty form, 1440x900)
+  live-demo-filled.png            (new — form filled, pre-click)
+  live-demo-verified.png          (new — Verified verdict + 9 cards)
+logs/deploy_smoke_<ts>.json       (new x 3 — first 2 are diagnostic
+                                   trail; 1778942331 is the canonical
+                                   all-green run after the alias fix)
+```
+
+### (f) Known gaps + post-sprint work
+
+- **Vercel subdomain not provisioned** — needs Pablo's hands on the
+  laptop browser to complete `npx vercel login` OAuth, then
+  `vercel deploy --prod` from `packages/frontend/`. After that,
+  swap the README "Try it live" URL to the prettier
+  `apohara-inti.vercel.app` (and reset `VITE_API_URL` to point at
+  the same nip.io backend).
+- **No SLO / uptime monitoring.** A `cron` job that hits `/health`
+  every 5 min + alerts on 2 consecutive failures would close this
+  gap. Out of scope for US-010.
+- **No CDN.** The static bundle is 264 KB gzipped — small enough not
+  to warrant Cloudflare today, but if traffic spikes during judging
+  the single ewr droplet would be the bottleneck.
+- **apohara-inti.dev domain not registered.** Cost ≈ \$12/yr if Pablo
+  wants it; the nip.io fallback is fine for a 12-day judging window.

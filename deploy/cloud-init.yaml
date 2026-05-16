@@ -146,6 +146,12 @@ write_files:
       chown root:root /opt/apohara-inti/.env
       chmod 0600 /opt/apohara-inti/.env
 
+      # Ledger dir — uvicorn HOME=/var/lib/apohara-inti so
+      # ~/.apohara-inti/ledger.jsonl writes succeed under
+      # systemd's ProtectHome=read-only.
+      mkdir -p /var/lib/apohara-inti
+      chmod 700 /var/lib/apohara-inti
+
       # ----- 5. Discover public IP + write Caddyfile -------------------------
       PUBLIC_IP="$(curl -fsS -m 10 https://api.ipify.org || \
                    curl -fsS -m 10 https://ifconfig.me || \
@@ -190,6 +196,9 @@ write_files:
       # repos in step 3) since their flat-layout pyprojects can't be
       # pip-installed cleanly today.
       Environment=PYTHONPATH=/opt/apohara-aegis:/opt/Apohara_Context_Forge
+      # HOME redirected to a writable, hardening-friendly path so the
+      # ledger (~/.apohara-inti/ledger.jsonl) survives ProtectHome=read-only.
+      Environment=HOME=/var/lib/apohara-inti
       ExecStart=/opt/apohara-inti/.venv/bin/uvicorn main:app \
         --host 127.0.0.1 --port 8000 \
         --proxy-headers --forwarded-allow-ips=127.0.0.1
@@ -201,6 +210,7 @@ write_files:
       NoNewPrivileges=true
       ProtectSystem=full
       ProtectHome=read-only
+      ReadWritePaths=/var/lib/apohara-inti
       PrivateTmp=true
       # Resource caps (1 vCPU / 2 GB box)
       MemoryMax=1500M

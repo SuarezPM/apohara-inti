@@ -9,6 +9,27 @@ enforces `INV-15` memory isolation between the writer agent and every attacker.
 
 ---
 
+## Try it live
+
+**Live demo (TechEx 2026 judging window, May 14 – May 26):**
+[https://149.28.56.91.nip.io/](https://149.28.56.91.nip.io/)
+
+Paste your own Gemini API key — we never store it. Other attacker
+vendors (Claude Opus 4.7, GPT-5.5, DeepSeek V4 Pro, MiniMax M2.7,
+Kimi K2.6, GLM 5.1, Qwen 3.6 Plus, Nemotron 3 Super 120B, Big Pickle)
+run on our shared credit pool. Get a Gemini key at
+[aistudio.google.com/apikey](https://aistudio.google.com/apikey) — the
+free tier is enough for a few hundred verifications.
+
+The demo URL uses [nip.io](https://nip.io) wildcard DNS pointing at
+our Vultr droplet (`149.28.56.91`), with Caddy auto-issued TLS via
+Let's Encrypt. We did NOT register `apohara-inti.dev`; if/when we do,
+this section will get the prettier URL.
+
+Backend health probe: `curl -sf https://149.28.56.91.nip.io/health`.
+
+---
+
 ## Sanity check
 
 - **What is it?** — Cross-AI code reviewer where Gemini writes/audits and 9 frontier vendors adversarially attack the output before merge.

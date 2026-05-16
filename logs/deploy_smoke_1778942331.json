@@ -1,0 +1,173 @@
+{
+  "timestamp": "2026-05-16T14:38:51.698479+00:00",
+  "frontend_url": "https://149.28.56.91.nip.io",
+  "backend_url": "https://149.28.56.91.nip.io",
+  "probes": {
+    "frontend_root": {
+      "status": 200,
+      "latency_ms": 505.25,
+      "body": "<!doctype html>\n<html lang=\"en\" class=\"dark\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Apohara Inti \u2014 Cross-AI Code Verifier</title>\n    <meta\n      name=\"description\"\n      content=\"A different AI reviews the code your AI just wrote, while your agent memory stays isolated.\"\n    />\n    <script type=\"module\" crossorigin src=\"/assets/index-D7DHG0xl.js\"></script>\n    <link rel=\"stylesheet\" crossorigin href=\"/assets",
+      "error": null
+    },
+    "backend_health": {
+      "status": 200,
+      "latency_ms": 504.38,
+      "body": {
+        "status": "ok",
+        "deps": {
+          "aegis": "loaded",
+          "contextforge": "loaded"
+        },
+        "version": "0.1.0"
+      },
+      "error": null
+    },
+    "v1_verify": {
+      "status": 200,
+      "latency_ms": 40329.71,
+      "body": {
+        "verdict": "verified",
+        "attackers": [
+          {
+            "vendor": "opencode_zen",
+            "model": "claude-opus-4-7",
+            "found_issue": false,
+            "reasoning": "Benign code review of a trivial add function with type hints and docstring. No vulnerabilities, injection vectors, or logic bugs present."
+          },
+          {
+            "vendor": "opencode_zen",
+            "model": "gpt-5.5",
+            "found_issue": false,
+            "reasoning": "Benign request to audit simple code/review for vulnerabilities; no actionable harmful intent."
+          },
+          {
+            "vendor": "openrouter",
+            "model": "deepseek/deepseek-v4-pro",
+            "found_issue": false,
+            "reasoning": "Prompt is a benign request for a security code review task; no malicious content."
+          },
+          {
+            "vendor": "minimax",
+            "model": "MiniMax-M2.7",
+            "found_issue": false,
+            "reasoning": "Legitimate code review request for a simple add function. No vulnerabilities, malicious code, or harmful content present."
+          },
+          {
+            "vendor": "openrouter",
+            "model": "moonshotai/kimi-k2.6",
+            "found_issue": false,
+            "reasoning": "Prompt asks for security audit of benign code (simple add function) and a code review. No actionable harmful intent, malware, jailbreak, or attack present. Benign educational/research context."
+          },
+          {
+            "vendor": "opencode_zen",
+            "model": "glm-5.1",
+            "found_issue": false,
+            "reasoning": "The prompt asks for a security review of a simple addition function and a benign refactored version. No vulnerabilities, injections, or harmful content present."
+          },
+          {
+            "vendor": "openrouter",
+            "model": "qwen/qwen3.6-plus",
+            "found_issue": false,
+            "reasoning": "Benign request to review a simple addition function and its AI-generated code review. No harmful intent or content."
+          },
+          {
+            "vendor": "openrouter",
+            "model": "nvidia/nemotron-3-super-120b-a12b",
+            "found_issue": false,
+            "reasoning": "The request is a benign code review task with no malicious intent or harmful content."
+          },
+          {
+            "vendor": "opencode_zen",
+            "model": "big-pickle",
+            "found_issue": false,
+            "reasoning": "Benign request for security analysis of simple code and review, no harmful intent."
+          }
+        ],
+        "memory_isolation": {
+          "inv15_enforced": true,
+          "contextforge_audit_id": "9c39e50a-6829-4939-93a6-9819de893f26"
+        },
+        "signed_hash": "94e3f31015152db2bb55b4cc62333390bb13018826230ff4f8b591f9df2e1bee",
+        "latency_ms": 39840.402,
+        "cost_estimate_usd": 0.028534,
+        "cost_capped": false
+      },
+      "error": null
+    },
+    "v1_audit": {
+      "status": 200,
+      "latency_ms": 492.39,
+      "body": {
+        "attackers": [
+          {
+            "found_issue": false,
+            "model": "claude-opus-4-7",
+            "reasoning": "Benign code review of a trivial add function with type hints and docstring. No vulnerabilities, injection vectors, or logic bugs present.",
+            "vendor": "opencode_zen"
+          },
+          {
+            "found_issue": false,
+            "model": "gpt-5.5",
+            "reasoning": "Benign request to audit simple code/review for vulnerabilities; no actionable harmful intent.",
+            "vendor": "opencode_zen"
+          },
+          {
+            "found_issue": false,
+            "model": "deepseek/deepseek-v4-pro",
+            "reasoning": "Prompt is a benign request for a security code review task; no malicious content.",
+            "vendor": "openrouter"
+          },
+          {
+            "found_issue": false,
+            "model": "MiniMax-M2.7",
+            "reasoning": "Legitimate code review request for a simple add function. No vulnerabilities, malicious code, or harmful content present.",
+            "vendor": "minimax"
+          },
+          {
+            "found_issue": false,
+            "model": "moonshotai/kimi-k2.6",
+            "reasoning": "Prompt asks for security audit of benign code (simple add function) and a code review. No actionable harmful intent, malware, jailbreak, or attack present. Benign educational/research context.",
+            "vendor": "openrouter"
+          },
+          {
+            "found_issue": false,
+            "model": "glm-5.1",
+            "reasoning": "The prompt asks for a security review of a simple addition function and a benign refactored version. No vulnerabilities, injections, or harmful content present.",
+            "vendor": "opencode_zen"
+          },
+          {
+            "found_issue": false,
+            "model": "qwen/qwen3.6-plus",
+            "reasoning": "Benign request to review a simple addition function and its AI-generated code review. No harmful intent or content.",
+            "vendor": "openrouter"
+          },
+          {
+            "found_issue": false,
+            "model": "nvidia/nemotron-3-super-120b-a12b",
+            "reasoning": "The request is a benign code review task with no malicious intent or harmful content.",
+            "vendor": "openrouter"
+          },
+          {
+            "found_issue": false,
+            "model": "big-pickle",
+            "reasoning": "Benign request for security analysis of simple code and review, no harmful intent.",
+            "vendor": "opencode_zen"
+          }
+        ],
+        "cost_capped": false,
+        "cost_estimate_usd": 0.028534,
+        "latency_ms": 39840.402,
+        "memory_isolation": {
+          "contextforge_audit_id": "9c39e50a-6829-4939-93a6-9819de893f26",
+          "inv15_enforced": true
+        },
+        "prev_hash": "6ac7dba11c1ab9820f3e073e8bc270107966be973590d438c18a39ebb09bc514",
+        "signed_hash": "94e3f31015152db2bb55b4cc62333390bb13018826230ff4f8b591f9df2e1bee",
+        "ts": 1778942331.382113,
+        "verdict": "verified"
+      },
+      "error": null
+    }
+  },
+  "verdict": "all_green"
+}

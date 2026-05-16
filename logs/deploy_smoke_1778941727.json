@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-05-16T14:28:47.085436+00:00",
+  "frontend_url": "https://149.28.56.91.nip.io",
+  "backend_url": "https://149.28.56.91.nip.io",
+  "probes": {
+    "frontend_root": {
+      "status": 200,
+      "latency_ms": 497.87,
+      "body": "<!doctype html>\n<html lang=\"en\" class=\"dark\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Apohara Inti \u2014 Cross-AI Code Verifier</title>\n    <meta\n      name=\"description\"\n      content=\"A different AI reviews the code your AI just wrote, while your agent memory stays isolated.\"\n    />\n    <script type=\"module\" crossorigin src=\"/assets/index-D7DHG0xl.js\"></script>\n    <link rel=\"stylesheet\" crossorigin href=\"/assets",
+      "error": null
+    },
+    "backend_health": {
+      "status": 200,
+      "latency_ms": 491.13,
+      "body": {
+        "status": "ok",
+        "deps": {
+          "aegis": "loaded",
+          "contextforge": "loaded"
+        },
+        "version": "0.1.0"
+      },
+      "error": null
+    },
+    "v1_verify": {
+      "status": 500,
+      "latency_ms": 44419.39,
+      "body": "Internal Server Error",
+      "error": "HTTPError 500: Internal Server Error"
+    },
+    "v1_audit": {
+      "status": 404,
+      "latency_ms": 752.88,
+      "body": "{\"detail\":\"no ledger entry for smoketest-known-missing-id-1778941726\"}",
+      "error": "HTTPError 404: Not Found"
+    }
+  },
+  "verdict": "degraded"
+}

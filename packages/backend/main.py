@@ -31,7 +31,7 @@ from typing import Any, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 # ---------------------------------------------------------------------------
 # Dep import — capture failures honestly for /health (do NOT crash on import).
@@ -86,8 +86,18 @@ VERDICT_REVIEW_THRESHOLD = 3  # 3-5 attackers harmful  -> risky
 
 
 class VerifyRequest(BaseModel):
+    # populate_by_name=True so the API accepts either alias on input
+    # (legacy frontend shipped `code:` per US-007 types.ts; canonical
+    # is `task_input` per US-006 spec). Both names produce the same
+    # internal field.
+    model_config = ConfigDict(populate_by_name=True)
+
     gemini_api_key: str = Field(..., min_length=1)
-    task_input: str = Field(..., min_length=1)
+    task_input: str = Field(
+        ...,
+        min_length=1,
+        validation_alias=AliasChoices("task_input", "code"),
+    )
 
 
 class AttackerReport(BaseModel):
