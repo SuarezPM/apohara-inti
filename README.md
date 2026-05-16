@@ -71,7 +71,7 @@ confirmed from public material, we say so explicitly rather than guess.
 | Pantheon (TechEx) [^5] | proprietary classifier (Gemini + Lobster Trap) | Yes (red-teams every action) | Aegis-style runtime SOC | Unknown (hackathon, no public repo) | Unknown | No |
 | TrusynAI [^6] | single-vendor LLM (Gemini) | No | none | Apache-2.0 | Unknown | No |
 | Vela (TechEx) | Unknown (no TechEx team page found; only Milan AI Week submission cited) | Unknown | Unknown | Unknown | Unknown | Unknown |
-| Granite Guardian 4 [^7] | safety classifier (single-vendor) | Yes (internal red-team) | none | Apache-2.0 | free OSS | TBD — pending US-004 Granite probe |
+| Granite Guardian 4 [^7] | safety classifier (single-vendor) | Yes (internal red-team) | none | Apache-2.0 | free OSS | Yes — `ibm/granite-4-h-small` on JBB-style n=5: **5/5 BLOCK, p50=559ms, p99=566ms** ([log][gg4-log]) |
 
 [^1]: <https://developers.google.com/gemini-code-assist/docs/review-repo-code>
 [^2]: <https://deepsource.com/blog/byok>
@@ -80,6 +80,7 @@ confirmed from public material, we say so explicitly rather than guess.
 [^5]: <https://lablab.ai/ai-hackathons/techex-intelligent-enterprise-solutions-hackathon>
 [^6]: <https://github.com/Trusyn-AI/trusyn-ai>
 [^7]: <https://huggingface.co/ibm-granite/granite-guardian-3.3-8b>
+[gg4-log]: https://github.com/SuarezPM/apohara-aegis/blob/main/logs/granite4_probe_n5_20260516T163113Z.json
 
 ### Why this matrix matters
 
