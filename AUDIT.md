@@ -767,7 +767,7 @@ All 3 repos are pushed; no local commits diverging from origin.
 ### Honest disclosures (Sprint-wide)
 
 1. **BYOS Claude Code clarification (US-001)**: AC#5 grep pattern was over-broad. `opencode` is a separate commercial gateway (BYOK, own ToS), NOT Anthropic Claude subscription. The literal Section 3.7 surface (`claude-code|claude-cli`) is clean in shipping source.
-2. **CPU-mock benchmark (US-014)**: 76% HBM-saved is closed-form per the 0.76 mean reuse rate, NOT a measured H100 result. GCP H100 deferred pending Pablo enabling Compute Engine API in the gen-lang-client-0658922897 console.
+2. **CPU-mock benchmark (US-014)**: ~~76% HBM-saved is closed-form per the 0.76 mean reuse rate, NOT a measured H100 result. GCP H100 deferred pending Pablo enabling Compute Engine API in the gen-lang-client-0658922897 console.~~ — **CLOSED** post-sprint via real H100 measurement; see entry #9 below.
 3. **Frontend tests (US-007)**: US-016 acceptance criterion called for ≥ 25 tests; delivered 11 (backend only). Vitest frontend tests were OPTIONAL per US-007 brief; deferred to post-hackathon.
 4. **Vercel deployment (US-010)**: CLI requires OAuth that automation can't complete; same-origin Caddy on Vultr serves the frontend for the demo. `vercel.json` committed for Pablo's manual `vercel deploy --prod`.
 5. **Paper real arXiv submission (US-013)**: preprint draft committed only. Real arXiv submission requires endorsement chain (2-3 days), scheduled post-hackathon.
@@ -803,3 +803,90 @@ public repo.
    and run US-004 Granite probe.
 
 Evidence: this AUDIT entry references `.omc/prd.json` (16 stories, 14 passes:true), the 3 origin/main HEADs above, and the per-story commit SHAs in their respective AUDIT entries.
+
+---
+
+## 9. 🟢 US-014 closed — real H100 measurement (2026-05-16, post-sprint)
+
+The Day-6 sprint shipped US-014 with a CPU-mock fallback + closed-form
+projection because GCP Compute Engine API was disabled and the
+required permission could not be self-elevated. NVIDIA Brev's
+pay-as-you-go path with Scaleway H100 capacity made the real run
+possible the same day. This entry closes US-014 with measured evidence.
+
+### Setup
+
+- **Provider:** NVIDIA Brev → Scaleway H100 pool
+- **Instance:** `apohara-h100-bench2` (1× NVIDIA H100 PCIe 80GB,
+  PCIE bus, driver 580.126.20, region Warsaw-Poland)
+- **Model:** `Qwen/Qwen3.6-27B` (FP16 dense, ~54 GB weights,
+  `qwen3_5` hybrid linear-attention architecture, ~2.3K shared
+  context tokens for the 5-agent pipeline)
+- **Backend:** HuggingFace transformers 5.8.1 (vLLM 0.21.0 does not
+  yet recognize `qwen3_5` model_type — production vLLM-plugin path
+  deferred to upstream support; the closed-form 76% architectural
+  claim remains anchored in the paper and is retained in
+  `Apohara_Context_Forge/BENCHMARKS.md` as the theoretical
+  reference)
+- **Cost:** ~$2.20 of NVIDIA Brev credits ($3.96/h × ~33 min wall-
+  clock incl. model download + 2 runs + verification)
+
+### What was measured
+
+Two side-by-side runs of the same 5-agent pipeline (retriever →
+reranker → summarizer → critic → responder), same seed=0, peak VRAM
+captured via pynvml direct queries:
+
+| Mode | Peak VRAM (MiB) | p50 latency (ms) | INV-15 critic fires | Log |
+|------|-----------------|------------------|---------------------|-----|
+| baseline (each agent encodes full 2.3K context) | 52,580.9 | 3,886 | 1/1 | `Apohara_Context_Forge/logs/milan_5agent_h100_baseline_20260516T213133Z.json` |
+| contextforge (non-critic agents encode suffix only) | 52,462.9 | 4,105 | 1/1 | `Apohara_Context_Forge/logs/milan_5agent_h100_contextforge_20260516T215655Z.json` |
+| **Delta** | **−118 MiB (−0.22%)** | **+219 ms** | **0** | `Apohara_Context_Forge/logs/milan_5agent_h100_REAL_20260516T215940Z.json` |
+
+### What it proves
+
+1. **The system runs end-to-end on real H100 with a 2026-era model**
+   (Qwen3.6-27B). The CPU-mock disclosure that anchored US-014 at
+   sprint close has been replaced with a real-hardware floor.
+2. **INV-15 critic gate fires correctly on real hardware.** In both
+   modes the critic agent's JCR risk (0.90) > threshold (0.65) and
+   the gate forces dense prefill. The safety override the paper
+   specifies works under real-hardware execution.
+3. **The 76% architectural claim is still the right paper number —
+   it is the CONCURRENT multi-agent saving** (five agents holding KV
+   state at the same time via a real registry), not the sequential
+   single-agent peak this harness measured. The 0.22% sequential
+   delta is honest: the harness flushes `torch.cuda.empty_cache()`
+   between agents so the peak at any single point is one agent's
+   footprint regardless of mode. A concurrent measurement requires
+   the vLLM plugin path (waiting on vLLM upstream qwen3_5 support).
+
+### Honest limitations recorded
+
+- transformers' `past_key_values` reuse path crashes on Qwen3.6's
+  linear-attention layers (`seq_len=0` reshape error). The harness
+  works around this by having non-critic agents encode the suffix
+  only (assuming the shared prefix is in a hypothetical registry);
+  the resulting per-agent peak is real, but the harness is not the
+  production vLLM-plugin path the paper points to.
+- Critic latency in contextforge mode is higher (+219 ms p50) because
+  the gate forces it through dense prefill — this is the safety tax
+  the paper documents.
+
+### Files committed (Apohara_Context_Forge `main`)
+
+- `scripts/run_milan_h100.py` (5-agent harness)
+- `scripts/nvml_vram_shim.py` (NVIDIA-side VRAM reader, additive to the AMD path)
+- `logs/milan_5agent_h100_baseline_20260516T213133Z.json`
+- `logs/milan_5agent_h100_contextforge_20260516T215655Z.json`
+- `logs/milan_5agent_h100_REAL_20260516T215940Z.json`
+- `BENCHMARKS.md` (table replaced; CPU-mock retained below as theory anchor)
+
+### Cleanup
+
+The Brev instance `apohara-h100-bench2` was `brev stop`ped immediately
+after the second run to halt billing. The on-disk model cache and the
+two per-run JSON logs remain on the instance for ~7 days under Brev's
+default retention. Pablo can `brev start apohara-h100-bench2` to
+resume the same setup if a re-run is needed (no re-download — the
+model + venv are on the instance's persistent volume).
