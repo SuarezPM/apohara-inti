@@ -1,0 +1,40 @@
+# syntax=docker/dockerfile:1.7
+# Dockerfile.backend — Apohara Inti FastAPI service (US-009)
+#
+# Builds the cross-AI verification backend that proxies to Gemini (user BYOK),
+# runs the 9-vendor adversarial ensemble from apohara-aegis, and enforces
+# INV-15 memory isolation via apohara-context-forge.
+#
+# The two upstream Apohara repos (aegis + contextforge) are still pre-PyPI; we
+# install them from main on github.com/SuarezPM. If the user wants to pin them
+# to a local clone for development, mount /opt/apohara-aegis and
+# /opt/apohara-context-forge as volumes and override the PYTHONPATH.
+
+FROM python:3.12-slim
+
+# System deps — git for the @main PEP-508 git+https installs.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git curl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy backend package definition first for layer caching on requirement
+# changes only. The repo layout puts pyproject.toml under packages/backend/.
+COPY packages/backend/pyproject.toml /app/pyproject.toml
+COPY packages/backend/main.py /app/main.py
+
+# Upgrade pip and install the backend with its declared dependencies.
+# - fastapi, uvicorn[standard], pydantic, google-genai come from PyPI
+# - apohara-aegis and apohara-context-forge come from git+main per pyproject
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+ && pip install --no-cache-dir .
+
+EXPOSE 8000
+
+# Healthcheck — hit /health and accept 200 (ok) OR 503 (degraded but alive).
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=4 \
+  CMD curl -sf -o /dev/null -w '%{http_code}\n' http://localhost:8000/health \
+      | grep -E '^(200|503)$' || exit 1
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

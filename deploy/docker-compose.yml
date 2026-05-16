@@ -1,0 +1,109 @@
+# docker-compose.yml — Apohara Inti TerraFabric stack (US-009)
+#
+# Brings up the full Apohara Inti deployment behind Veea's Lobster Trap DPI
+# proxy, plus a mock VeeaONE control plane for local development against the
+# TerraFabric integration pattern.
+#
+#   user request ──> lobster-trap (:8080)  ── DPI / policy eval
+#                          │
+#                          ▼
+#                   aegis-backend (:8000) ── Gemini writer + 9 attackers
+#                          │
+#                          ▼
+#                   contextforge (:8001)  ── INV-15 KV isolation
+#
+#   veeaone-stub (:9000) sits beside the stack as a mock TerraFabric control
+#   plane (NOT a faithful replica — production deployments would talk to the
+#   real Veea API).
+#
+# Required env vars (any unset will degrade gracefully but the matching
+# attacker seat falls back to "unavailable" path in the verdict ledger):
+#   GEMINI_API_KEY       — required by the user (BYOK), pasted in the UI
+#   OPENROUTER_API_KEY   — OpenRouter-routed attackers (Claude/GPT/DeepSeek)
+#   OPENCODE_ZEN_API_KEY — opencode Zen attackers (Codex/Grok)
+#   MINIMAX_API_KEY      — MiniMax M2.7 attacker
+#   NVIDIA_API_KEY       — Nemotron attacker (NIM endpoint)
+#
+# NOT used (intentional, per US-006 design): ANTHROPIC_API_KEY. Apohara Inti
+# routes Claude via OpenRouter so the user never needs an Anthropic key.
+
+services:
+  lobster-trap:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.lobstertrap
+    image: apohara-inti/lobstertrap:0.1.0
+    container_name: apohara-inti-lobstertrap
+    command:
+      - "--policy"
+      - "/app/configs/default_policy.yaml"
+      - "--listen"
+      - ":8080"
+      - "--backend"
+      - "http://aegis-backend:8000"
+    ports:
+      - "8080:8080"
+    depends_on:
+      aegis-backend:
+        condition: service_healthy
+    networks:
+      - apohara-inti
+    restart: unless-stopped
+
+  aegis-backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    image: apohara-inti/backend:0.1.0
+    container_name: apohara-inti-backend
+    expose:
+      - "8000"
+    environment:
+      # Attacker-ensemble keys — apohara_aegis.multi_judge.make_default_adapters
+      # reads these from the process environment. Any unset key short-circuits
+      # the matching seat to a fail-open verdict (see packages/backend/main.py
+      # _run_attackers fallback path).
+      OPENROUTER_API_KEY: "${OPENROUTER_API_KEY:-}"
+      OPENCODE_ZEN_API_KEY: "${OPENCODE_ZEN_API_KEY:-}"
+      MINIMAX_API_KEY: "${MINIMAX_API_KEY:-}"
+      NVIDIA_API_KEY: "${NVIDIA_API_KEY:-}"
+      # ContextForge sidecar URL — packages/backend/main.py imports
+      # apohara_context_forge.safety.jcr_gate directly (in-process), but
+      # we expose the sidecar URL so future stories (US-010+) can switch
+      # to the over-the-wire MCP path without touching the compose file.
+      CONTEXTFORGE_URL: "http://contextforge-sidecar:8001"
+    depends_on:
+      contextforge-sidecar:
+        condition: service_healthy
+    networks:
+      - apohara-inti
+    restart: unless-stopped
+
+  contextforge-sidecar:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.contextforge
+    image: apohara-inti/contextforge:0.1.0
+    container_name: apohara-inti-contextforge
+    expose:
+      - "8001"
+    networks:
+      - apohara-inti
+    restart: unless-stopped
+
+  veeaone-stub:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.veeaone-stub
+    image: apohara-inti/veeaone-stub:0.1.0
+    container_name: apohara-inti-veeaone-stub
+    expose:
+      - "9000"
+    networks:
+      - apohara-inti
+    restart: unless-stopped
+
+networks:
+  apohara-inti:
+    name: apohara-inti
+    driver: bridge

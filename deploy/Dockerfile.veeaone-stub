@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1.7
+# Dockerfile.veeaone-stub — Mock Veea TerraFabric control plane (US-009)
+#
+# Returns canned JSON for /healthz, /devices, and /policies so the
+# docker-compose smoke run can verify wiring without hitting Veea's
+# production TerraFabric API. NOT a faithful implementation — see
+# ../terrafabric-stack.md for the production integration pattern.
+
+FROM python:3.12-alpine
+
+RUN pip install --no-cache-dir fastapi "uvicorn[standard]"
+
+WORKDIR /app
+COPY deploy/veeaone_stub/mock_server.py /app/mock_server.py
+
+EXPOSE 9000
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:9000/healthz || exit 1
+
+CMD ["uvicorn", "mock_server:app", "--host", "0.0.0.0", "--port", "9000"]

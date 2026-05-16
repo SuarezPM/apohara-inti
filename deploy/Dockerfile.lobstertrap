@@ -1,0 +1,61 @@
+# syntax=docker/dockerfile:1.7
+# Dockerfile.lobstertrap — Veea Lobster Trap DPI proxy (US-009)
+#
+# Builds from source because no veea/lobstertrap or veeainc/lobstertrap image
+# is published on Docker Hub as of 2026-05-16:
+#
+#   $ curl -sS -o /dev/null -w "%{http_code}\n" \
+#       https://hub.docker.com/v2/repositories/veeainc/lobstertrap/
+#   404
+#
+# Upstream source: https://github.com/veeainc/lobstertrap (Go 1.22+, MIT-style)
+# Module path:    github.com/coal/lobstertrap (per upstream go.mod)
+# Default port:   :8080 (per cmd/serve.go listenAddr flag default)
+# Default policy: configs/default_policy.yaml (per cmd/serve.go policyFile flag)
+#
+# The proxy is transparent and OpenAI-compatible: any path under /v1/*
+# forwards to the --backend URL, anything under /_lobstertrap/* hits the
+# built-in dashboard, everything else also proxies through.
+
+# ---------- Build stage ----------
+FROM golang:1.22-alpine AS build
+
+RUN apk add --no-cache git ca-certificates
+
+# Clone the official Veea source. Pinned to main branch; production deploys
+# should pin to a tagged release once Veea cuts one (no GitHub releases as of
+# 2026-05-16; default branch HEAD is the only stable reference).
+WORKDIR /src
+RUN git clone --depth 1 https://github.com/veeainc/lobstertrap.git .
+
+# Static build per upstream Makefile target build-static:
+#   CGO_ENABLED=0 go build -ldflags="-s -w ..." -o lobstertrap .
+ENV CGO_ENABLED=0
+RUN go build \
+        -ldflags="-s -w -X github.com/coal/lobstertrap/cmd.Version=0.1.0-veeainc-main" \
+        -o /out/lobstertrap .
+
+# Bring the default policy with us so the runtime image is self-contained
+# without an extra volume mount for first-run testing.
+RUN cp configs/default_policy.yaml /out/default_policy.yaml
+
+# ---------- Runtime stage ----------
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates curl
+
+WORKDIR /app
+COPY --from=build /out/lobstertrap /app/lobstertrap
+COPY --from=build /out/default_policy.yaml /app/configs/default_policy.yaml
+
+EXPOSE 8080
+
+# Healthcheck — we don't have a dedicated /healthz endpoint on Lobster Trap;
+# the dashboard root returns 200 OK when the proxy is alive even if the
+# backend is down, so we use that as liveness signal.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=4 \
+  CMD curl -sf http://localhost:8080/_lobstertrap/ -o /dev/null || exit 1
+
+# The compose service overrides --backend to point at aegis-backend:8000.
+ENTRYPOINT ["/app/lobstertrap", "serve"]
+CMD ["--policy", "/app/configs/default_policy.yaml", "--listen", ":8080"]

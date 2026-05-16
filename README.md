@@ -64,6 +64,28 @@ Apohara Inti's cross-vendor attacker ensemble targets.
 
 ---
 
+## Deploy to TerraFabric
+
+Run the full Apohara Inti stack behind Veea's Lobster Trap DPI proxy with one
+command. The recipe brings up four services on a shared docker network:
+Lobster Trap as the ingress DPI, the FastAPI backend, the ContextForge MCP
+sidecar, and a mock VeeaONE control plane stub.
+
+```bash
+cd deploy && docker-compose up -d --build
+```
+
+This is the integration pattern for production [Veea TerraFabric][tf-mwc]
+deployments — the local VeeaONE stub will be swapped for the real control
+plane client once you have TerraFabric API credentials. See
+[`deploy/terrafabric-stack.md`](deploy/terrafabric-stack.md) for the detailed
+recipe (architecture diagram, required env vars, smoke test, image registry
+notes).
+
+[tf-mwc]: https://aithority.com/machine-learning/veea-launches-terrafabric-paving-the-way-to-operate-ai-and-autonomous-systems-at-the-edge/
+
+---
+
 ## Powered by Apohara Context Forge
 
 Apohara Inti's memory plane runs on
