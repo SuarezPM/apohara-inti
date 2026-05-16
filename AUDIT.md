@@ -53,3 +53,50 @@ Five sections, total under 300 words:
 
 Heavier content (comparison table, BENCHMARKS section, ContextForge featured
 narrative) is deferred to US-008 and US-011 per PRD scope ordering.
+
+---
+
+## 2. 🟢 Comparison table vs 9 competitors (2026-05-16, Day-6 US-008)
+
+`## How we compare` section added to README — `README.md:23-63`. Table
+has 1 header row + 9 product rows (Apohara Inti + 8 competitors),
+6 substantive columns + the highlighted "Memory isolation = ContextForge
+INV-15" column that is unique to us.
+
+### Sources cited (primary, verified via WebFetch 2026-05-16)
+
+- Gemini Code Assist — `README.md:41` → developers.google.com/gemini-code-assist/docs/review-repo-code (Apache-2.0 samples, free 33 PR/day, single-vendor, no adversarial).
+- DeepSource BYOK — `README.md:42` → deepsource.com/blog/byok (commercial, hybrid static+AI, no adversarial).
+- LlamaGuard / Purple Llama — `README.md:43` → github.com/meta-llama/PurpleLlama (Llama Community License, free OSS, CyberSec Eval adversarial benchmark).
+- NeMo Guardrails — `README.md:44` → github.com/NVIDIA/NeMo-Guardrails (Apache-2.0, free OSS, jailbreak / prompt-injection scanning).
+- Pantheon (TechEx) — `README.md:45` → lablab.ai TechEx Intelligent Enterprise Solutions hackathon overview (proprietary classifier on Gemini 2.5 Flash + Veea Lobster Trap, red-teams every agent action; no public team page or repo found on 2026-05-16).
+- TrusynAI — `README.md:46` → github.com/Trusyn-AI/trusyn-ai (Apache-2.0, single-vendor Gemini, no adversarial testing per repo).
+- Granite Guardian 4 — `README.md:47` → huggingface.co/ibm-granite/granite-guardian-3.3-8b (Apache-2.0, internal red-team training data, free OSS). Block-rate column kept as TBD — pending US-004 Granite probe.
+
+### Highlighting
+
+Apohara Inti row (`README.md:31`) is the only row with bolded cells across all
+6 columns AND a `→` cue prefix, marking the unique combination:
+multi-vendor + adversarial Yes + ContextForge INV-15 + Apache-2.0 + BYOK-free +
+reproducible benchmark (`logs/`). No other row achieves this combination.
+
+### Pending verification (honest gaps)
+
+- **Pantheon** — Hackathon project; no public repo or dedicated team page
+  on lablab.ai found by 2026-05-16 search. License + cost columns marked
+  "Unknown" rather than guessed. Note: Pantheon is described on the
+  hackathon overview page only.
+- **Vela** — Only a Milan AI Week 2026 submission ("Vela — AI Agency
+  Command Center") appears on lablab.ai; no TechEx team page for Vela
+  was found by 2026-05-16 search. All 5 columns marked "Unknown"; row
+  retained per PRD AC#2 (≥9 rows) with an explicit honesty note in the
+  Approach cell rather than fabricated values.
+- **Granite Guardian** — Block-rate column held at TBD until US-004 IBM
+  Cloud signup unblocks the live probe.
+
+### "Why this matrix matters" paragraph
+
+97 words at `README.md:51-60`. Cites EU AI Act Article 14 (Aug 2 2026
+deadline, T-78 days) and OWASP Top-10 for LLM Apps 2026 (April 14 2026
+release, Tool Poisoning → LLM02) as the regulatory pressure motivating
+the column set.

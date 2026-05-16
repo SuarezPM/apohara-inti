@@ -20,6 +20,50 @@ enforces `INV-15` memory isolation between the writer agent and every attacker.
 
 ---
 
+## How we compare
+
+A scan of the May 2026 LLM-safety / cross-AI-review space. Each column is
+sourced from a primary reference (links below). Where a column cannot be
+confirmed from public material, we say so explicitly rather than guess.
+
+| Product | Approach | Adversarial testing | Memory isolation | License | User cost | Reproducible benchmark |
+|---|---|---|---|---|---|---|
+| **Apohara Inti** (us) → | **multi-vendor consensus** | **Yes** | **ContextForge INV-15** | **Apache-2.0** | **free with BYOK** | **Yes (see `logs/`)** |
+| Gemini Code Assist [^1] | single-vendor LLM | No | none | proprietary | free (33 PR/day) + paid enterprise | No |
+| DeepSource BYOK AI Review [^2] | hybrid static + AI | No | none | commercial | paid enterprise (BYOK) | No |
+| LlamaGuard / Purple Llama [^3] | safety classifier (single-vendor) | Yes (CyberSec Eval) | none | Llama Community License | free OSS | Partial (CyberSec Eval public) |
+| NeMo Guardrails [^4] | guardrail framework | Yes (jailbreak scan) | none | Apache-2.0 | free OSS | Partial (eval tool, no public log) |
+| Pantheon (TechEx) [^5] | proprietary classifier (Gemini + Lobster Trap) | Yes (red-teams every action) | Aegis-style runtime SOC | Unknown (hackathon, no public repo) | Unknown | No |
+| TrusynAI [^6] | single-vendor LLM (Gemini) | No | none | Apache-2.0 | Unknown | No |
+| Vela (TechEx) | Unknown (no TechEx team page found; only Milan AI Week submission cited) | Unknown | Unknown | Unknown | Unknown | Unknown |
+| Granite Guardian 4 [^7] | safety classifier (single-vendor) | Yes (internal red-team) | none | Apache-2.0 | free OSS | TBD — pending US-004 Granite probe |
+
+[^1]: <https://developers.google.com/gemini-code-assist/docs/review-repo-code>
+[^2]: <https://deepsource.com/blog/byok>
+[^3]: <https://github.com/meta-llama/PurpleLlama>
+[^4]: <https://github.com/NVIDIA/NeMo-Guardrails>
+[^5]: <https://lablab.ai/ai-hackathons/techex-intelligent-enterprise-solutions-hackathon>
+[^6]: <https://github.com/Trusyn-AI/trusyn-ai>
+[^7]: <https://huggingface.co/ibm-granite/granite-guardian-3.3-8b>
+
+### Why this matrix matters
+
+No other product in the table combines all six: multi-vendor consensus,
+adversarial testing, INV-15 memory isolation, open license, BYOK-free user
+cost, and a reproducible benchmark log. Single-vendor reviewers cannot
+catch their own blind spots, safety classifiers do not vet code semantics,
+and the closest hackathon peers either lack memory isolation or are
+proprietary. Regulatory pressure makes this gap urgent: [EU AI Act
+Article 14][8] (human-oversight obligation) becomes fully applicable on
+2026-08-02 (78 days), and [OWASP Top-10 for LLM Apps 2026][9] (released
+2026-04-14) elevated **Tool Poisoning to LLM02** — precisely the surface
+Apohara Inti's cross-vendor attacker ensemble targets.
+
+[8]: https://artificialintelligenceact.eu/article/14/
+[9]: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+
+---
+
 ## Install
 
 Coming in US-006 / US-007. Not yet installable.
