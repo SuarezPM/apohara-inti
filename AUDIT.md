@@ -887,3 +887,66 @@ two per-run JSON logs remain on the instance for ~7 days under Brev's
 default retention. Pablo can `brev start apohara-h100-bench2` to
 resume the same setup if a re-run is needed (no re-download — the
 model + venv are on the instance's persistent volume).
+
+
+---
+
+## US-MI-014 — MI300X Wave B real-hardware refresh (2026-05-16)
+
+After closing the H100 arm of US-014 above, Pablo rented an AMD
+Instinct MI300X via Hot Aisle (`enc1-gpuvm019`, `hotaisle@23.183.40.84`)
+and ran the four canonical MI300X scripts that live in the
+sister-repo `Apohara_Context_Forge`. Goal: confirm the paper's
+3.55× INT4 codec VRAM-reduction headline on live hardware (the prior
+sprint's MI300X measurements were archived from a different droplet
+and a different ROCm version; the V2.0 paper draft cites them as
+canonical).
+
+### Hardware
+
+`rocm-hip:6.2.41133-dd7f95766:AMD Instinct MI300X VF` — 192 GB HBM3,
+ROCm 6.2, torch 2.5.1+rocm6.2. ~$1.50 / ~45 min of compute at
+$1.99/h. SSH key auth via the `***REMOVED***` passphrase loaded into
+ssh-agent.
+
+### Numbers committed
+
+| Metric | Value | Log |
+|---|---|---|
+| Best HBM3 triad bandwidth | **3622 GB/s** (68.4 % of 5.3 TB/s peak) | `mi300x_hbm3_bandwidth_1778973430.json` |
+| INT4 VRAM reduction @ 4K  | 3.5433× | `mi300x_vram_sweep_1778973581.json` |
+| INT4 VRAM reduction @ 8K  | 3.5494× | (same) |
+| INT4 VRAM reduction @ 16K | 3.5525× | (same) |
+| INT4 VRAM reduction @ 32K | **3.5540×** (matches paper headline) | (same) + `mi300x_vram_1778973631.json` |
+| Length invariance (4K → 32K) | within ±0.011× — confirms paper claim | sweep log |
+
+### What this closes vs what it does NOT close
+
+- ✅ Replaces "MI300X numbers cited in the paper come from an older
+  archived run" with a fresh measurement on rented hardware that any
+  reviewer can re-run from the committed scripts.
+- ✅ Confirms the length-invariance claim across the 4K–32K range
+  (the script's default sweep). The paper's 4K–262K claim is
+  preserved by the previous sprint's archived sweep — the new run
+  validates the trend, not the full upper bound.
+- 🟡 Does NOT replace the 5-agent benchmark MI300X arm — that
+  remains the H100 measurement above. Running the 5-agent harness
+  on MI300X is a post-hackathon delivery (would need ROCm-built
+  vLLM, which is its own bring-up).
+
+### Files committed (Apohara_Context_Forge `main`, commit `fb8dc42`)
+
+- `logs/mi300x_hbm3_bandwidth_1778973430.json`
+- `logs/mi300x_pure_torch_fwht_1778973433.json`
+- `logs/mi300x_vram_sweep_1778973581.json`
+- `logs/mi300x_vram_1778973631.json`
+- `BENCHMARKS.md` (new "MI300X Wave B" section with all four stages
+  + reduction-factor table + HBM3 bandwidth table)
+
+### Cleanup status
+
+The Hot Aisle MI300X VM `enc1-gpuvm019` is RUNNING. Hot Aisle bills
+per minute of VM uptime regardless of GPU utilization. Pablo should
+issue `terminate` from the Hot Aisle TUI as soon as he confirms the
+logs are good — every additional 30 min of idle VM is ~$1.00.
+
