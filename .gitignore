@@ -31,3 +31,15 @@ Thumbs.db
 
 # Runtime audit-write side directory (not the committed logs/ evidence tree)
 .apohara/
+
+# --- Internal planning + release prep (mirrored to ~/Documentos/Apohara_PRIVATE/) ---
+# Maintainer-only artifacts: video scripts, outreach drafts, submission
+# text, checklists, paper-upload workflow. Public repo carries only the
+# shippable surface (code, docs, audit, license, public-facing assets).
+.omc/
+docs/video-*.md
+docs/outreach-*.md
+docs/*-submission.md
+docs/pre-submit-*.md
+docs/paper-upload-guide.md
+docs/paper-metadata.yaml

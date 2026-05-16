@@ -639,7 +639,7 @@ ContextForge" header).
    `apohara-aegis/pyproject.toml` flat-layout package discovery
    (root has `logs/`, `deploy/`, `assets/`, `configs/`,
    `apohara_aegis/` and no `[tool.setuptools]` block). Fix landed in
-   commit `eff9b38` — bypass `pip install -e backend`, clone aegis +
+   commit `c5cc150` — bypass `pip install -e backend`, clone aegis +
    contextforge as sibling repos, add them to PYTHONPATH on the
    systemd unit. Upstream follow-up tracked in apohara-aegis backlog
    (`tool.setuptools.packages = ["apohara_aegis"]`), not blocking.
@@ -734,7 +734,7 @@ logs/deploy_smoke_<ts>.json       (new x 3 — first 2 are diagnostic
 |------|------|:--:|--------|:--:|
 | apohara-aegis | `4d821fe` | ✓ | **114 passed**, 9 skipped | ✓ |
 | Apohara_Context_Forge | `8ce1524` | ✓ | **373 passed**, 26 skipped | ✓ (only `__pycache__` pyc modified, no source changes) |
-| apohara-inti | `71adef1` | ✓ | **11 passed**, 0 failed | ✓ |
+| apohara-inti | `97d534c` | ✓ | **11 passed**, 0 failed | ✓ |
 
 All 3 repos are pushed; no local commits diverging from origin.
 
@@ -746,19 +746,19 @@ All 3 repos are pushed; no local commits diverging from origin.
   - US-003 — `2a2e4ac` apohara-aegis HarmBench subset N=40 (77.50% ± 12.6%) + dual-bench README
 
 - **Phase 1 (apohara-inti product, ~48h actual vs ~52h estimated):**
-  - US-005 — `cd86633` repo bootstrap + 6 sanity questions
-  - US-006 — `b3afd4e` Backend FastAPI `/v1/verify` (11 tests passing, p50 3.45ms mocked)
-  - US-007 — `07a5df4` Frontend Tauri+React UI (48 files, 13 components, screenshots)
-  - US-008 — `c48d4c8` Comparison table vs 9 competitors with primary sources cited
-  - US-009 — `23caa16` TerraFabric + LobsterTrap docker-compose recipe
-  - US-010 — `ccd3788` Live deployment at <https://149.28.56.91.nip.io/> ($1.40 Vultr spent)
-  - US-011 — `8ba3d06` ContextForge featured visibility (5 surfaces, 216-word section)
-  - US-012 — `680cd49` TechEx submission package prep (video script + 480-word submission + 4 DMs + checklist)
+  - US-005 — `c829e4c` repo bootstrap + 6 sanity questions
+  - US-006 — `e79e0d6` Backend FastAPI `/v1/verify` (11 tests passing, p50 3.45ms mocked)
+  - US-007 — `0b5d10b` Frontend Tauri+React UI (48 files, 13 components, screenshots)
+  - US-008 — `0172eb0` Comparison table vs 9 competitors with primary sources cited
+  - US-009 — `a1eb00c` TerraFabric + LobsterTrap docker-compose recipe
+  - US-010 — `48b01b5` Live deployment at <https://149.28.56.91.nip.io/> ($1.40 Vultr spent)
+  - US-011 — `7b26ac2` ContextForge featured visibility (5 surfaces, 216-word section)
+  - US-012 — TechEx submission package prepared (maintainer's private archive — no public commit)
 
 - **Phase 2 (ContextForge + Milan polish, ~28h actual vs ~23h estimated):**
   - US-013 — `fe16285` ContextForge INV-15 paper v2.0 preprint draft (13pp, 416 KiB PDF)
   - US-014 — `8ce1524` 5-agent benchmark with honest CPU-mock fallback + GCP H100 deferred (Compute Engine API not enabled)
-  - US-015 — `71adef1` Milan submission package prep (script + 499-word submission + 2 DMs + checklist)
+  - US-015 — `97d534c` Milan submission package prepared (maintainer's private archive)
 
 ### Stories deferred / blocked
 
@@ -787,11 +787,19 @@ The $4 total is **2% of the budget ceiling** — most of the work was code, not 
 
 ### Pablo's manual steps remaining (post-sprint)
 
-Listed for transparency and as a hand-off:
+Listed for transparency and as a hand-off. Internal materials (video
+scripts, outreach drafts, submission text, checklists) are held in the
+maintainer's private archive and intentionally not committed to the
+public repo.
 
-1. **Video recording**: 3-min TechEx + 60-90s Milan, per scripts in `apohara-inti/docs/video-script-{techex,milan}.md`. 6 open questions documented in US-012 report + 5 in US-015 report.
-2. **LinkedIn outreach**: 4 TechEx DMs + 2 Milan DMs in `apohara-inti/docs/outreach-dm-*.md`.
-3. **Form submission**: lablab.ai TechEx form by 2026-05-19 and Milan form by 2026-05-20. Pre-submit checklists at `apohara-inti/docs/pre-submit-checklist*.md`.
-4. **Optional unblockings**: enable GCP Compute Engine API to run real US-014 H100 benchmark; sign IBM Cloud account to claim $80 credits and run US-004 Granite probe.
+1. **Video recording**: 3-min TechEx pitch + 60-90s Milan pitch per the
+   maintainer's pre-prepared script.
+2. **LinkedIn outreach**: hackathon-organiser DMs per the maintainer's
+   outreach draft.
+3. **Form submission**: lablab.ai TechEx form by 2026-05-19 and Milan
+   form by 2026-05-20.
+4. **Optional unblockings**: enable GCP Compute Engine API to run real
+   US-014 H100 benchmark; sign IBM Cloud account to claim $80 credits
+   and run US-004 Granite probe.
 
 Evidence: this AUDIT entry references `.omc/prd.json` (16 stories, 14 passes:true), the 3 origin/main HEADs above, and the per-story commit SHAs in their respective AUDIT entries.
