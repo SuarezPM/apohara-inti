@@ -898,23 +898,21 @@ refresh of the four canonical Wave B scripts, committed to
 
 ---
 
-## US-MI-014 — MI300X Wave B real-hardware refresh (2026-05-16)
+## US-MI-014 — MI300X Wave B refresh (2026-05-16)
 
-After closing the H100 arm of US-014 above, Pablo rented an AMD
-Instinct MI300X via Hot Aisle (`enc1-gpuvm019`, `hotaisle@23.183.40.84`)
-and ran the four canonical MI300X scripts that live in the
+MI300X arm of US-014. Pablo rented an AMD Instinct MI300X via Hot
+Aisle (`enc1-gpuvm019`) and ran the four Wave B scripts from the
 sister-repo `Apohara_Context_Forge`. Goal: confirm the paper's
-3.55× INT4 codec VRAM-reduction headline on live hardware (the prior
-sprint's MI300X measurements were archived from a different droplet
-and a different ROCm version; the V2.0 paper draft cites them as
-canonical).
+3.55× INT4 codec VRAM-reduction headline on a freshly-rented droplet
+— the prior sprint's measurements were archived from a different
+droplet on a different ROCm version, and the V2.0 paper draft cites
+them as canonical.
 
 ### Hardware
 
 `rocm-hip:6.2.41133-dd7f95766:AMD Instinct MI300X VF` — 192 GB HBM3,
 ROCm 6.2, torch 2.5.1+rocm6.2. ~$1.50 / ~45 min of compute at
-$1.99/h. SSH key auth via the `***REMOVED***` passphrase loaded into
-ssh-agent.
+$1.99/h.
 
 ### Numbers committed
 
@@ -943,12 +941,11 @@ ssh-agent.
 
 ### Files committed (Apohara_Context_Forge `main`, commit `fb8dc42`)
 
-- `logs/mi300x_hbm3_bandwidth_1778973430.json`
-- `logs/mi300x_pure_torch_fwht_1778973433.json`
-- `logs/mi300x_vram_sweep_1778973581.json`
-- `logs/mi300x_vram_1778973631.json`
-- `BENCHMARKS.md` (new "MI300X Wave B" section with all four stages
-  + reduction-factor table + HBM3 bandwidth table)
+- `logs/mi300x_hbm3_bandwidth_1778973430.json` (Stage A)
+- `logs/mi300x_pure_torch_fwht_1778973433.json` (Stage B)
+- `logs/mi300x_vram_sweep_1778973581.json` (Stage C)
+- `logs/mi300x_vram_1778973631.json` (Stage D)
+- `BENCHMARKS.md` — new "MI300X Wave B" section
 
 ### Cleanup status
 
