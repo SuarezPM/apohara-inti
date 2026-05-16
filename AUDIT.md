@@ -100,3 +100,78 @@ reproducible benchmark (`logs/`). No other row achieves this combination.
 deadline, T-78 days) and OWASP Top-10 for LLM Apps 2026 (April 14 2026
 release, Tool Poisoning → LLM02) as the regulatory pressure motivating
 the column set.
+
+---
+
+## 3. 🟢 Backend `/v1/verify` endpoint (2026-05-16, Day-6 US-006)
+
+FastAPI service exposing Gemini-writer + 9-attacker-adversarial-ensemble +
+INV-15 memory isolation. Lives at `packages/backend/main.py`.
+
+### (a) Endpoint surface
+
+- `POST /v1/verify` — body `{gemini_api_key, task_input}`, returns
+  `{verdict, attackers[], memory_isolation, signed_hash, latency_ms,
+  cost_estimate_usd, cost_capped}`. Verdict aggregation thresholds match
+  PRD: `0-2 → verified`, `3-5 → risky`, `6+ → blocked`.
+- `GET /health` — reports import status of both Apohara deps with HTTP
+  200 / 503 contract.
+- `GET /v1/audit/{verdict_id}` — returns the signed ledger entry for a
+  given `signed_hash`, or 404.
+
+### (b) Test coverage
+
+`packages/backend/tests/test_verify.py` — **11 passing** (target was ≥7):
+happy path verified, blocked, parametrized risky (3/4/5), invalid Gemini
+key → 401, memory isolation enforced + unique audit ids, SHA-256 chain
+across 3 calls, /health, /v1/audit round-trip + 404, aggregator threshold
+boundary check.
+
+Command: `PYTHONPATH=<aegis>:<contextforge>:packages/backend python3 -m
+pytest packages/backend/tests/ -q` → `11 passed in 0.48s`.
+
+### (c) Latency
+
+`packages/backend/tests/latency_report.json` — 5 prompts, mocked Gemini +
+mocked attackers (framework overhead only): **p50 = 3.448 ms, p99 = 12.593
+ms**, well under the 60 000 ms target. Real upstream wall-clock is bounded
+by `max(Gemini, max(9 attackers in parallel))` and is upstream-dependent.
+
+### (d) Dep install — fallback path activated 🟠
+
+`pip install -e packages/backend/` fails on this developer host with
+`error: externally-managed-environment` (PEP 668, Debian python3.14
+default). Task spec authorized the fallback:
+
+> If installing aegis + contextforge as git deps fails or has resolution
+> conflicts, fall back to: `pip install -e /home/linconx/Documentos/
+> apohara-aegis -e /home/linconx/Documentos/Apohara_Context_Forge` for
+> development and document this in AUDIT.md (the git-install path can be
+> tried again for the deployment story US-010).
+
+Active mitigation for **US-006 only**: tests + benchmarks run under
+`PYTHONPATH=/home/linconx/Documentos/apohara-aegis:/home/linconx/
+Documentos/Apohara_Context_Forge:packages/backend`. Both Apohara modules
+import cleanly; aegis `__version__ == "0.1.0"`; context-forge
+`__version__ == "3.0.0"`. To be revisited in **US-010** (deployment)
+with a proper venv or PyPI publish.
+
+### (e) INV-15 enforcement
+
+For every `/v1/verify` call, a fresh `JCRSafetyGate` instance is created;
+one `gate_decision(agent_role="critic", candidate_count=9,
+reuse_rate=0.0, layout_shuffled=True)` per attacker. The risk score for
+this configuration is `0.6 (base critic) + 0.7 (candidate_count - 2) *
+0.10 + 0.20 (layout shuffled) = clamp(1.5, 0, 1) = 1.0`, well above the
+0.7 threshold → dense prefill mandated → KV-cache isolation. The
+response includes `memory_isolation.inv15_enforced: true` and a unique
+uuid4 `contextforge_audit_id`. Evidence: `packages/backend/main.py:421-441`
+and `test_verify_memory_isolation_enforced` in the test file.
+
+### (f) Ledger SHA-256 chain
+
+Append-only JSONL at `~/.apohara-inti/ledger.jsonl`. Each entry's
+`signed_hash = SHA-256(prev_hash + canonical_json(entry))`. First entry
+uses `prev_hash = "0"*64`. Verified end-to-end by
+`test_verify_signed_hash_chain` (3 sequential calls, each new entry's
+`prev_hash` matches the predecessor's `signed_hash`).

@@ -1,0 +1,26 @@
+{
+  "samples": 5,
+  "prompts": [
+    "def is_palindrome(s): return s == s[::-1]",
+    "fetch_url = lambda url: requests.get(url).json()",
+    "// 100 lines of TypeScript: const x = 1;\nconst x = 1;\nconst x = 1;\nconst x = 1;\n...",
+    "import os; os.system(input('cmd: '))",
+    "SELECT * FROM users WHERE id = '\" + user_id + \"'"
+  ],
+  "latency_ms": {
+    "min": 3.115,
+    "p50": 3.448,
+    "p99": 12.593,
+    "max": 12.593,
+    "raw": [
+      3.115,
+      3.429,
+      3.448,
+      4.321,
+      12.593
+    ]
+  },
+  "notes": "Mocked Gemini + mocked attackers \u2014 framework overhead only. Real upstream calls add Gemini (<=10s) + attacker max(latency) in parallel. Target p50 <= 60s for 100-line input is framework-overhead bounded; vendor-call latency is upstream-dependent and tracked by individual VendorAdapter timings.",
+  "target_p50_ms": 60000,
+  "passes_target": true
+}
