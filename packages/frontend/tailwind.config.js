@@ -44,7 +44,7 @@ export default {
         },
         // Apohara brand palette (raw hex; use Tailwind opacity modifiers e.g. apohara-lime/27)
         apohara: {
-          lime:      "#16D63A",
+          lime:      "#25B13F",
           dark:      "#2A2D3A",
           bone:      "#EDEFF0",
           ink:       "#0E1010",
@@ -74,11 +74,11 @@ export default {
         // Lime perimeter pulse for status="running" attacker cards
         "pulse-lime": {
           "0%, 100%": {
-            boxShadow: "0 0 0 0 hsl(131 81% 46% / 0.5)",
+            boxShadow: "0 0 0 0 hsl(131 65% 42% / 0.5)",
             opacity: "1",
           },
           "50%": {
-            boxShadow: "0 0 0 10px hsl(131 81% 46% / 0)",
+            boxShadow: "0 0 0 10px hsl(131 65% 42% / 0)",
             opacity: "0.92",
           },
         },

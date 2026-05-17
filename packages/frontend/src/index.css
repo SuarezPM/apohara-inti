@@ -57,19 +57,19 @@
     --foreground: 180 7% 6%;
     --card: 0 0% 100%;
     --card-foreground: 180 7% 6%;
-    --primary: 131 81% 46%;
+    --primary: 131 65% 42%;
     --primary-foreground: 180 7% 6%;
     --secondary: 200 9% 88%;
     --secondary-foreground: 180 7% 6%;
     --muted: 200 9% 88%;
     --muted-foreground: 225 6% 35%;
-    --accent: 131 81% 46%;
+    --accent: 131 65% 42%;
     --accent-foreground: 180 7% 6%;
     --destructive: 358 66% 44%;
     --destructive-foreground: 200 9% 94%;
     --border: 225 9% 80%;
     --input: 225 9% 80%;
-    --ring: 131 81% 46%;
+    --ring: 131 65% 42%;
     --radius: 0.25rem;
   }
 
@@ -78,24 +78,24 @@
     --foreground: 200 9% 94%;
     --card: 224 17% 18%;
     --card-foreground: 200 9% 94%;
-    --primary: 131 81% 46%;
+    --primary: 131 65% 42%;
     --primary-foreground: 180 7% 6%;
     --secondary: 225 18% 14%;
     --secondary-foreground: 200 9% 94%;
     --muted: 225 18% 14%;
     --muted-foreground: 225 8% 65%;
-    --accent: 131 81% 46%;
+    --accent: 131 65% 42%;
     --accent-foreground: 180 7% 6%;
     --destructive: 358 66% 44%;
     --destructive-foreground: 200 9% 94%;
     --border: 225 10% 28%;
     --input: 225 14% 16%;
-    --ring: 131 81% 46%;
+    --ring: 131 65% 42%;
   }
 
   /* Brand-direct tokens for new sections (raw color values, opacity-modulatable via Tailwind/[]). */
   :root {
-    --apohara-lime:        #16D63A;
+    --apohara-lime:        #25B13F;
     --apohara-dark:        #2A2D3A;
     --apohara-bone:        #EDEFF0;
     --apohara-ink:         #0E1010;
@@ -124,7 +124,7 @@
     position: fixed;
     inset: 0;
     background-image:
-      radial-gradient(circle at 25% 15%, hsla(131, 81%, 46%, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 25% 15%, hsla(131, 65%, 42%, 0.05) 0%, transparent 40%),
       radial-gradient(circle at 75% 85%, hsla(229, 16%, 20%, 0.6) 0%, transparent 60%);
     pointer-events: none;
     z-index: -1;
@@ -138,7 +138,7 @@
 
   /* Selection — lime accent */
   ::selection {
-    background: hsla(131, 81%, 46%, 0.3);
+    background: hsla(131, 65%, 42%, 0.3);
     color: hsl(var(--foreground));
   }
 
@@ -146,10 +146,10 @@
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: hsl(var(--background)); }
   ::-webkit-scrollbar-thumb {
-    background: hsla(131, 81%, 46%, 0.27);
+    background: hsla(131, 65%, 42%, 0.27);
     border-radius: 2px;
   }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(131 81% 46%); }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(131 65% 42%); }
 }
 
 @layer components {
