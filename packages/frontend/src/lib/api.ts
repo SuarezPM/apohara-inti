@@ -110,6 +110,44 @@ export async function verifyCode(req: VerifyRequest): Promise<VerdictResponse> {
   return (await response.json()) as VerdictResponse;
 }
 
+/** POST /v1/demo_verify — uses the backend's server-side Gemini key, capped
+ *  per-IP per day. Maps 429 + 503 to friendly user-facing messages. */
+export async function verifyDemoCode(code: string): Promise<VerdictResponse> {
+  if (MOCK) {
+    await delay(2000);
+    return buildMockResponse({ gemini_api_key: "demo", code });
+  }
+
+  const response = await fetch(`${API_URL}/v1/demo_verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ task_input: code }),
+  });
+
+  if (response.status === 429) {
+    const body = (await response.json().catch(() => ({}))) as {
+      detail?: { reset_at?: string };
+    };
+    const reset = body?.detail?.reset_at ?? "UTC midnight";
+    throw new Error(
+      `Demo limit reached — try again after ${reset} or paste your own Gemini key.`,
+    );
+  }
+  if (response.status === 503) {
+    throw new Error(
+      "Demo mode unavailable — please paste your Gemini key.",
+    );
+  }
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(
+      `Backend returned ${response.status} ${response.statusText}. ${text}`,
+    );
+  }
+
+  return (await response.json()) as VerdictResponse;
+}
+
 export const apiConfig = {
   url: API_URL,
   mock: MOCK,

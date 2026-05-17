@@ -25,10 +25,11 @@ import json
 import os
 import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
@@ -63,6 +64,9 @@ except Exception as exc:  # noqa: BLE001
     _ctx_version = "unknown"
     JCRSafetyGate = None  # type: ignore[assignment]
 
+from lobstertrap_client import check_prompt_with_lobstertrap
+from rate_limiter import DailyRateLimiter
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -82,6 +86,17 @@ VERDICT_REVIEW_THRESHOLD = 3  # 3-5 attackers harmful  -> risky
 # ---------------------------------------------------------------------------
 # Schemas
 # ---------------------------------------------------------------------------
+
+
+class DemoVerifyRequest(BaseModel):
+    """Demo endpoint accepts the prompt only; backend supplies the Gemini key."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    task_input: str = Field(
+        ...,
+        min_length=1,
+        validation_alias=AliasChoices("task_input", "code"),
+    )
 
 
 class VerifyRequest(BaseModel):
@@ -417,6 +432,23 @@ def _aggregate_verdict(reports: list[AttackerReport]) -> str:
     return "verified"
 
 
+# Module-level singleton: shared rate limiter for /v1/demo_verify.
+DEMO_MAX_PER_DAY = 5
+_demo_limiter = DailyRateLimiter(max_per_day=DEMO_MAX_PER_DAY)
+
+
+def _client_ip(request: Request) -> str:
+    """Extract the originating client IP, honoring X-Forwarded-For.
+
+    Caddy / nginx / Vultr LB set X-Forwarded-For with the original IP first.
+    Falls back to request.client.host for direct connections (local dev).
+    """
+    xff = request.headers.get("X-Forwarded-For", "").strip()
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 # ---------------------------------------------------------------------------
 # /v1/verify
 # ---------------------------------------------------------------------------
@@ -442,6 +474,41 @@ async def verify(req: VerifyRequest) -> VerifyResponse:
         )
 
     t0 = time.perf_counter()
+
+    # ---- 0.5 LobsterTrap DPI pre-check (active when LOBSTERTRAP_URL set) ----
+    lt_url = (os.environ.get("LOBSTERTRAP_URL") or "").strip() or None
+    dpi_check = await check_prompt_with_lobstertrap(req.task_input, lt_url)
+    if not dpi_check["allowed"]:
+        # Short-circuit: never call Gemini, never run attackers, audit the block.
+        dpi_audit_id = str(uuid.uuid4())
+        dpi_latency_ms = (time.perf_counter() - t0) * 1000.0
+        dpi_prev_hash = _read_last_hash()
+        dpi_entry = {
+            "verdict": "blocked",
+            "attackers": [],
+            "memory_isolation": {
+                "inv15_enforced": True,
+                "contextforge_audit_id": dpi_audit_id,
+            },
+            "dpi_check": dpi_check,
+            "latency_ms": round(dpi_latency_ms, 3),
+            "cost_estimate_usd": 0.0,
+            "cost_capped": False,
+            "ts": time.time(),
+        }
+        dpi_signed = _append_ledger(dpi_entry, dpi_prev_hash)
+        return VerifyResponse(
+            verdict="blocked",
+            attackers=[],
+            memory_isolation=MemoryIsolationReport(
+                inv15_enforced=True,
+                contextforge_audit_id=dpi_audit_id,
+            ),
+            signed_hash=dpi_signed,
+            latency_ms=round(dpi_latency_ms, 3),
+            cost_estimate_usd=0.0,
+            cost_capped=False,
+        )
 
     # ---- 1. Gemini writer pass ---------------------------------------------
     try:
@@ -524,6 +591,7 @@ async def verify(req: VerifyRequest) -> VerifyResponse:
             "inv15_enforced": inv15_enforced_all,
             "contextforge_audit_id": audit_id,
         },
+        "dpi_check": dpi_check,
         "latency_ms": round(latency_ms, 3),
         "cost_estimate_usd": round(delta_cost, 6),
         "cost_capped": cost_capped,
@@ -543,6 +611,48 @@ async def verify(req: VerifyRequest) -> VerifyResponse:
         cost_estimate_usd=round(delta_cost, 6),
         cost_capped=cost_capped,
     )
+
+
+# ---------------------------------------------------------------------------
+# /v1/demo_verify  — same pipeline as /v1/verify, server-side key + rate limit
+# ---------------------------------------------------------------------------
+
+
+@app.post("/v1/demo_verify", response_model=VerifyResponse)
+async def demo_verify(
+    req: DemoVerifyRequest,
+    request: Request,
+    response: Response,
+) -> VerifyResponse:
+    """Run /v1/verify with a server-side Gemini key, capped per-IP per day.
+    503 when ``DEMO_GEMINI_KEY`` unset; 429 when daily quota exhausted."""
+    demo_key = (os.environ.get("DEMO_GEMINI_KEY") or "").strip()
+    if not demo_key:
+        raise HTTPException(status_code=503, detail="demo mode not configured")
+
+    ip = _client_ip(request)
+    allowed, remaining, reset_at = await _demo_limiter.check_and_consume(ip)
+    if not allowed:
+        secs_to_reset = max(
+            1,
+            int((reset_at - datetime.now(timezone.utc)).total_seconds()),
+        )
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "detail": "demo limit reached for today",
+                "remaining": 0,
+                "reset_at": reset_at.isoformat(),
+            },
+            headers={"Retry-After": str(secs_to_reset)},
+        )
+
+    # Delegate to the canonical verify() so DPI, ledger, attackers + INV-15
+    # all behave identically — no duplicated pipeline to keep in sync.
+    forwarded = VerifyRequest(gemini_api_key=demo_key, task_input=req.task_input)
+    result = await verify(forwarded)
+    response.headers["X-Apohara-Demo-Remaining"] = str(remaining)
+    return result
 
 
 # ---------------------------------------------------------------------------

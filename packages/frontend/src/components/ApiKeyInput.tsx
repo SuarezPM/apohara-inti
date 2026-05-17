@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, KeyRound } from "lucide-react";
+import { Eye, EyeOff, Gift, KeyRound } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,19 @@ export interface ApiKeyInputProps {
   value: string;
   onChange: (next: string) => void;
   disabled?: boolean;
+  /** Toggle demo mode on/off; demo mode bypasses BYOK with a server-side
+   *  Gemini key capped at 5 calls per IP per UTC day. */
+  onToggleDemo?: () => void;
+  demoActive?: boolean;
 }
 
-export function ApiKeyInput({ value, onChange, disabled }: ApiKeyInputProps) {
+export function ApiKeyInput({
+  value,
+  onChange,
+  disabled,
+  onToggleDemo,
+  demoActive,
+}: ApiKeyInputProps) {
   const [revealed, setRevealed] = useState(false);
 
   return (
@@ -28,9 +38,9 @@ export function ApiKeyInput({ value, onChange, disabled }: ApiKeyInputProps) {
           type={revealed ? "text" : "password"}
           autoComplete="off"
           spellCheck={false}
-          placeholder="AIzaSy..."
+          placeholder={demoActive ? "Demo mode active — key not required" : "AIzaSy..."}
           value={value}
-          disabled={disabled}
+          disabled={disabled || demoActive}
           onChange={(event) => onChange(event.target.value)}
         />
         <Button
@@ -39,7 +49,7 @@ export function ApiKeyInput({ value, onChange, disabled }: ApiKeyInputProps) {
           size="icon"
           aria-label={revealed ? "Hide API key" : "Show API key"}
           onClick={() => setRevealed((prev) => !prev)}
-          disabled={disabled}
+          disabled={disabled || demoActive}
         >
           {revealed ? (
             <EyeOff className="h-4 w-4" />
@@ -48,9 +58,25 @@ export function ApiKeyInput({ value, onChange, disabled }: ApiKeyInputProps) {
           )}
         </Button>
       </div>
+      {onToggleDemo && (
+        <Button
+          type="button"
+          variant={demoActive ? "default" : "outline"}
+          size="sm"
+          onClick={onToggleDemo}
+          disabled={disabled}
+          className="w-full justify-center gap-2"
+        >
+          <Gift className="h-4 w-4" />
+          {demoActive
+            ? "Demo mode active — click to use your own key"
+            : "Try with demo key (5 calls / IP / day)"}
+        </Button>
+      )}
       <p className="text-xs text-muted-foreground">
-        Your key is forwarded only to Google's Gemini endpoint via the Apohara
-        Inti backend. It is never persisted in logs, audit blobs, or telemetry.
+        {demoActive
+          ? "Demo mode uses a server-side Gemini key shared across visitors, rate-limited to 5 calls per IP per UTC day. Switch back any time."
+          : "Your key is forwarded only to Google's Gemini endpoint via the Apohara Inti backend. It is never persisted in logs, audit blobs, or telemetry."}
       </p>
     </div>
   );

@@ -8,7 +8,7 @@ import { VerdictPanel } from "@/components/VerdictPanel";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { apiConfig, verifyCode } from "@/lib/api";
+import { apiConfig, verifyCode, verifyDemoCode } from "@/lib/api";
 import type { VerdictResponse } from "@/lib/types";
 
 export default function App() {
@@ -17,10 +17,14 @@ export default function App() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [response, setResponse] = useState<VerdictResponse | null>(null);
+  const [demoMode, setDemoMode] = useState(false);
 
   const canVerify = useMemo(
-    () => apiKey.trim().length > 0 && code.trim().length > 0 && !isVerifying,
-    [apiKey, code, isVerifying],
+    () =>
+      code.trim().length > 0 &&
+      !isVerifying &&
+      (demoMode || apiKey.trim().length > 0),
+    [apiKey, code, isVerifying, demoMode],
   );
 
   const handleVerify = async () => {
@@ -29,10 +33,12 @@ export default function App() {
     setResponse(null);
     setIsVerifying(true);
     try {
-      const result = await verifyCode({
-        gemini_api_key: apiKey.trim(),
-        code: code.trim(),
-      });
+      const result = demoMode
+        ? await verifyDemoCode(code.trim())
+        : await verifyCode({
+            gemini_api_key: apiKey.trim(),
+            code: code.trim(),
+          });
       setResponse(result);
     } catch (err) {
       const message =
@@ -82,6 +88,8 @@ export default function App() {
             value={apiKey}
             onChange={setApiKey}
             disabled={isVerifying}
+            demoActive={demoMode}
+            onToggleDemo={() => setDemoMode((prev) => !prev)}
           />
           <CodeInput value={code} onChange={setCode} disabled={isVerifying} />
         </section>
