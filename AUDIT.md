@@ -1001,9 +1001,11 @@ reducing peak memory. Documented for future paper revision.
 |---|---|---|
 | Wave B (US-MI-014, 2026-05-16) | ~45 min | ~$1.50 |
 | Wave C (US-MI2-014, 2026-05-17) | 5 min | ~$0.17 |
-| **Total MI300X spend** | **~50 min** | **~$1.67** |
+| **Total MI300X spend across both runs** | **~50 min** | **~$1.67** |
 
-Hot Aisle balance after Wave C: ~$17.27 (was $18.94 pre-Wave C).
+Hot Aisle balance recorded post-Wave B (in maintainer's private
+log): $18.94. Wave C deducts ~$0.17 → balance after Wave C is
+**~$18.77** (≈9.4 h of MI300X compute still available at $1.99/h).
 
 ### Files committed (Apohara_Context_Forge `main`)
 
