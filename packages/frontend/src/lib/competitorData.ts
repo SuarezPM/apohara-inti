@@ -32,11 +32,11 @@ export const TIER_1: Tier1Competitor[] = [
     },
     tests: {
       value: "150 funcs / 467 cases",
-      source: "94 aegis def test_ funcs + 56 ctx-forge funcs (expand to 373 runtime cases per Apohara_Context_Forge/AUDIT.md line 469)",
+      source: "94 aegis def test_ funcs + 56 ctx-forge funcs (parametrize expansion: 94 aegis + 373 ctx-forge runtime = 467 per Apohara_Context_Forge/AUDIT.md line 469 '373 passed, 26 skipped')",
     },
     publicBenchmarks: {
       value: "JBB 93.75% / HarmBench 77.5%",
-      source: "apohara-aegis/logs/baseline_aegis-ensemble_20260515T1500Z.json (Wilson 95% CI [86.2%, 97.3%], n=80 holdout)",
+      source: "apohara-aegis/logs/baseline_aegis-ensemble-10frontier_day5_FALLBACK_20260515T212737Z.json — 75/80 blocked, Wilson 95% CI [86.2%, 97.3%]",
     },
     multiHardware: {
       value: "H100 + MI300X",

@@ -33,7 +33,7 @@ export const WHY_THIS_MATTERS = {
   multiVendor: {
     heading: "Why 9 vendors, not 1.",
     body:
-      "Every LLM has shared blind spots across its own requests. If you ask Claude to review code Claude wrote, you get one vendor's worldview twice. We dispatch 9 frontier vendors in parallel — Claude, GPT, DeepSeek, Kimi, GLM, Qwen, Nemotron, MiniMax, Big Pickle — and aggregate their verdicts. The 93.75% block rate on JailbreakBench (apohara-aegis/logs/baseline_aegis-ensemble_20260515T1500Z.json, Wilson [86.2%, 97.3%], n=80 holdout) is what consensus buys you. Single-vendor review never gets there.",
+      "Every LLM has shared blind spots across its own requests. If you ask Claude to review code Claude wrote, you get one vendor's worldview twice. We dispatch 9 frontier vendors in parallel — Claude, GPT, DeepSeek, Kimi, GLM, Qwen, Nemotron, MiniMax, Big Pickle — and aggregate their verdicts. The 93.75% block rate on JailbreakBench (apohara-aegis/logs/baseline_aegis-ensemble-10frontier_day5_FALLBACK_20260515T212737Z.json, Wilson [86.2%, 97.3%], n=80 holdout, 75 of 80 blocked) is what consensus buys you. Single-vendor review never gets there.",
   },
 
   inv15: {
