@@ -1,0 +1,493 @@
+# Instincts generated from https://github.com/SuarezPM/apohara-inti
+# Generated: 2026-05-17T14:59:09.608Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: apohara-inti-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat, docs, fix
+
+## Evidence
+
+- 4 commits analyzed
+- Detected conventional commit pattern
+- Examples: feat(backend): US-P1.1 — LobsterTrap async DPI client + tests, docs(readme,audit): US-P1.3 + US-P3.4 — request-path DPI + demo mode
+
+---
+id: apohara-inti-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Commit Length
+
+## Action
+
+Write moderate-length commit messages (~68 characters)
+
+## Evidence
+
+- Average commit message length: 68 chars
+- Based on 4 commits
+
+---
+id: apohara-inti-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Naming Files
+
+## Action
+
+Use snake_case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: snake_case
+
+---
+id: apohara-inti-import-alias
+trigger: "when importing modules"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Import Alias
+
+## Action
+
+Use path aliases (@/, ~/) instead of relative imports
+
+## Evidence
+
+- Import analysis shows alias pattern
+- Example: import { x } from '@/lib/x'
+
+---
+id: apohara-inti-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: apohara-inti-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: 
+
+---
+id: apohara-inti-test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Test Framework
+
+## Action
+
+Use vitest as the test framework
+
+## Evidence
+
+- Test framework detected: vitest
+- File pattern: *.test.ts
+
+---
+id: apohara-inti-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: apohara-inti-test-types
+trigger: "when planning tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Test Types
+
+## Action
+
+Write unit, integration tests to match project standards
+
+## Evidence
+
+- Test types detected: unit, integration
+- Coverage config: no
+
+---
+id: apohara-inti-workflow-feature-implementation-with-tests
+trigger: "when doing feature implementation with tests"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Workflow Feature Implementation With Tests
+
+## Action
+
+Follow the feature-implementation-with-tests workflow:
+1. Implement feature logic in backend or frontend source files.
+2. Add or update corresponding test files to cover the new logic.
+3. Update related files (e.g., API routes, helpers, or UI components) as needed.
+4. Run tests to verify correctness.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: packages/backend/*.py, packages/backend/tests/test_*.py, packages/frontend/src/*.tsx
+
+---
+id: apohara-inti-workflow-feature-documentation-update
+trigger: "when doing feature documentation update"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/SuarezPM/apohara-inti
+---
+
+# Apohara Inti Workflow Feature Documentation Update
+
+## Action
+
+Follow the feature-documentation-update workflow:
+1. Edit README.md to describe new features or usage.
+2. Edit AUDIT.md to record audit trail or security/feature decisions.
+3. Document rationale, usage, and edge cases.
+4. Commit documentation changes.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: README.md, AUDIT.md
+
+---
+id: apohara-inti-instinct-file-naming
+trigger: "When creating or renaming a file in the backend Python codebase"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct File Naming
+
+## Action
+
+Use snake_case for file names
+
+## Evidence
+
+- Pattern in packages/backend/*.py
+- Naming conventions: files = snake_case
+
+---
+id: apohara-inti-instinct-function-naming
+trigger: "When defining a new function in Python code"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Function Naming
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Naming conventions: functions = camelCase
+
+---
+id: apohara-inti-instinct-class-naming
+trigger: "When defining a new class in Python code"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Class Naming
+
+## Action
+
+Use PascalCase for class names
+
+## Evidence
+
+- Naming conventions: classes = PascalCase
+
+---
+id: apohara-inti-instinct-constant-naming
+trigger: "When defining a constant in Python code"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names
+
+## Evidence
+
+- Naming conventions: constants = SCREAMING_SNAKE_CASE
+
+---
+id: apohara-inti-instinct-import-style
+trigger: "When importing modules in Python code"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Import Style
+
+## Action
+
+Use alias import style
+
+## Evidence
+
+- importStyle: alias
+
+---
+id: apohara-inti-instinct-export-style
+trigger: "When exporting modules or functions in TypeScript/JavaScript code"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- exportStyle: named
+
+---
+id: apohara-inti-instinct-test-file-pattern
+trigger: "When adding a new test file for frontend or backend code"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Test File Pattern
+
+## Action
+
+Name the file with the pattern *.test.ts for TypeScript tests
+
+## Evidence
+
+- testing.filePattern: *.test.ts
+- Pattern in packages/frontend/src/lib/*.test.ts
+
+---
+id: apohara-inti-instinct-test-types
+trigger: "When writing tests for new features"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Test Types
+
+## Action
+
+Include both unit and integration tests as appropriate
+
+## Evidence
+
+- testing.testTypes: unit, integration
+- feature-implementation-with-tests workflow
+
+---
+id: apohara-inti-instinct-test-framework
+trigger: "When setting up or running tests in the frontend"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Test Framework
+
+## Action
+
+Use the vitest testing framework
+
+## Evidence
+
+- testing.framework: vitest
+
+---
+id: apohara-inti-instinct-commit-format
+trigger: "When making a git commit"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Commit Format
+
+## Action
+
+Use conventional commit format with prefixes: feat, fix, or docs, and a scope in parentheses
+
+## Evidence
+
+- commits.type: conventional
+- commits.prefixes: [feat, docs, fix]
+- Example: feat(backend): US-P1.1 — LobsterTrap async DPI client + tests
+
+---
+id: apohara-inti-instinct-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Commit Length
+
+## Action
+
+Keep the commit message concise, around 68 characters on average
+
+## Evidence
+
+- commits.averageLength: 68
+
+---
+id: apohara-inti-instinct-feature-implementation-with-tests
+trigger: "When adding a new backend or frontend feature"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Feature Implementation With Tests
+
+## Action
+
+Implement the feature and corresponding unit/integration tests in the same change
+
+## Evidence
+
+- feature-implementation-with-tests workflow
+- Pattern in commit: feat(backend): US-P1.1 — LobsterTrap async DPI client + tests
+- Pattern in files: packages/backend/*.py, packages/backend/tests/test_*.py, packages/frontend/src/lib/*.test.ts
+
+---
+id: apohara-inti-instinct-feature-documentation-update
+trigger: "When a new feature, workflow, or architectural decision is added"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: SuarezPM/apohara-inti
+---
+
+# Apohara Inti Instinct Feature Documentation Update
+
+## Action
+
+Update README.md and AUDIT.md to reflect the change
+
+## Evidence
+
+- feature-documentation-update workflow
+- Pattern in commit: docs(readme,audit): US-P1.3 + US-P3.4 — request-path DPI + demo mode
+- Pattern in files: README.md, AUDIT.md
+
