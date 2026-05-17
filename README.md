@@ -14,12 +14,12 @@ enforces `INV-15` memory isolation between the writer agent and every attacker.
 **Live demo (TechEx 2026 judging window, May 14 – May 26):**
 [https://149.28.56.91.nip.io/](https://149.28.56.91.nip.io/)
 
-Paste your own Gemini API key — we never store it. Other attacker
-vendors (Claude Opus 4.7, GPT-5.5, DeepSeek V4 Pro, MiniMax M2.7,
-Kimi K2.6, GLM 5.1, Qwen 3.6 Plus, Nemotron 3 Super 120B, Big Pickle)
-run on our shared credit pool. Get a Gemini key at
-[aistudio.google.com/apikey](https://aistudio.google.com/apikey) — the
-free tier is enough for a few hundred verifications.
+Two zero-friction entry paths:
+
+- **Try with demo key** (no signup): click the "Try with demo key" button under the API-key field. Uses a server-side Gemini key shared across visitors, rate-limited to **5 calls per IP per UTC day**. Returns 429 with the next reset timestamp when you hit the cap.
+- **Bring your own Gemini key** (BYOK): paste your key — we never store it. Get one at [aistudio.google.com/apikey](https://aistudio.google.com/apikey); the free tier covers hundreds of verifications.
+
+Either path runs the same pipeline: 9-vendor adversarial attackers (Claude Opus 4.7, GPT-5.5, DeepSeek V4 Pro, MiniMax M2.7, Kimi K2.6, GLM 5.1, Qwen 3.6 Plus, Nemotron 3 Super 120B, Big Pickle) on our shared credit pool, INV-15 memory isolation enforced, SHA-256-signed verdict ledger.
 
 The demo URL uses [nip.io](https://nip.io) wildcard DNS pointing at
 our Vultr droplet (`149.28.56.91`), with Caddy auto-issued TLS via
@@ -140,6 +140,24 @@ recipe (architecture diagram, required env vars, smoke test, image registry
 notes).
 
 [tf-mwc]: https://aithority.com/machine-learning/veea-launches-terrafabric-paving-the-way-to-operate-ai-and-autonomous-systems-at-the-edge/
+
+### Request-path DPI (active LobsterTrap routing)
+
+When `LOBSTERTRAP_URL` is set on the backend, every `POST /v1/verify`
+request triggers an inline DPI pre-check against the Lobster Trap proxy
+**before** Gemini is invoked. Three outcomes:
+
+| Lobster Trap response | Backend behavior |
+|---|---|
+| Allow (2xx) | Continues to Gemini writer + 9-attacker pass; ledger entry records `dpi_check.source = "lobstertrap"` for the audit trail |
+| Deny (403 or `id="lobstertrap-deny"` in body) | Short-circuits to `verdict="blocked"` with `attackers=[]`, `cost_estimate_usd=0`, INV-15 still enforced, ledger entry records the deny reason |
+| Unreachable (timeout / connect error) | Fail-open: continues current flow; ledger entry records `dpi_check.source = "unreachable-fallback"` (the 9-vendor ensemble is the primary safety layer, Lobster Trap is a fast perimeter pre-filter) |
+
+When `LOBSTERTRAP_URL` is unset, the pre-check returns
+`source="disabled"` without any HTTP call — zero overhead, identical
+behavior to versions without DPI wiring. The `docker-compose` stack
+in [`deploy/docker-compose.yml`](deploy/docker-compose.yml) wires this
+env var automatically for the `aegis-backend` service.
 
 ---
 

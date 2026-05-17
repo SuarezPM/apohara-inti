@@ -958,6 +958,183 @@ logs are good — every additional 30 min of idle VM is ~$1.00.
 
 ---
 
+## 10. 🟢 US-P1 — Active LobsterTrap routing wired into /v1/verify (2026-05-17, Day-7 pre-submit)
+
+### Problem
+
+`AUDIT #6` shipped a docker-compose recipe that placed LobsterTrap as a frontal
+reverse-proxy DPI in front of the backend, but the live smoke test was not run
+and the production deploy (Caddy → backend direct, no LT) does not exercise the
+DPI in the request path. Competitive intel (Pantheon, hackathon-week SOC MVP)
+demonstrated that **active** request-path DPI wiring is the artifact Veea Award
+reviewers expect — not a recipe. This closes that gap.
+
+### Change
+
+When the backend env var `LOBSTERTRAP_URL` is set, every `POST /v1/verify`
+request performs an inline DPI pre-check against the LobsterTrap proxy
+**before** any Gemini call or attacker pass. Behavior matrix:
+
+| LobsterTrap outcome | Backend action | Ledger field |
+|---|---|---|
+| 2xx allow | Continues to Gemini + 9 attackers | `dpi_check.source = "lobstertrap"`, `allowed=True` |
+| 403 / `id="lobstertrap-deny"` | Short-circuits → `verdict="blocked"`, `attackers=[]`, `cost_estimate_usd=0`, INV-15 enforced trivially | `dpi_check.source = "lobstertrap"`, `allowed=False`, `reason` from upstream |
+| Timeout / connect error | Fail-open: continues current flow + logs reason in ledger | `dpi_check.source = "unreachable-fallback"`, `allowed=True` |
+| `LOBSTERTRAP_URL` unset | Zero overhead, identical to pre-P1 behavior | `dpi_check.source = "disabled"` |
+
+The fail-open design is deliberate: the 9-vendor adversarial ensemble is the
+primary safety layer, LobsterTrap is a fast perimeter pre-filter. A DPI
+outage must not take down `/v1/verify`.
+
+On the deny short-circuit, `memory_isolation.inv15_enforced=True` is reported
+vacuously: no critic agents run, therefore there is no shared KV-cache to
+isolate, and the invariant holds trivially. The `contextforge_audit_id` is
+still freshly generated (uuid4) so each blocked verdict has a unique
+ledger-traceable identifier — this preserves the SHA-256 chain invariant.
+
+### Files changed
+
+| Path | LOC | Purpose |
+|---|---|---|
+| `packages/backend/lobstertrap_client.py` | +94 (new) | `check_prompt_with_lobstertrap(prompt, lt_url)` async helper; `_make_client` factory so tests can inject `httpx.MockTransport` |
+| `packages/backend/tests/test_lobstertrap_client.py` | +103 (new) | 7 unit tests: disabled (×2), allow-200, deny-403, deny-body-marker, fail-open-timeout, fail-open-connect-error |
+| `packages/backend/main.py` | +38 / -0 | `from lobstertrap_client import check_prompt_with_lobstertrap`; 35-line DPI short-circuit block inserted after `t0`; `dpi_check` field added to existing-path ledger entry |
+| `packages/backend/tests/test_verify.py` | +113 (4 new tests appended) | `test_dpi_disabled_default`, `test_dpi_allow_pass_through`, `test_dpi_deny_short_circuits` (asserts Gemini + attackers NOT called), `test_dpi_unreachable_fallback_continues` |
+| `README.md` | +20 (new subsection inside `## Deploy to TerraFabric`) | Documents the 3-outcome matrix + zero-overhead default |
+
+### Test counts
+
+| Suite | Before | After |
+|---|---|---|
+| `test_verify.py` | 11 | 15 (+4 DPI integration cases) |
+| `test_lobstertrap_client.py` | — | 7 (new) |
+| **Total backend** | **11** | **22** |
+
+Verification cmd:
+```bash
+cd /home/linconx/Documentos/apohara-inti && \
+PYTHONPATH=/home/linconx/Documentos/apohara-aegis:/home/linconx/Documentos/Apohara_Context_Forge:/home/linconx/Documentos/apohara-inti/packages/backend \
+  python3 -m pytest packages/backend/tests/ -q
+# → 22 passed, 0 failed
+```
+
+### Decision rationale (why inline pre-check vs gateway-only)
+
+LobsterTrap supports two integration patterns:
+
+1. **Gateway** (docker-compose `lobster-trap` service listening :8080 → forwards to backend :8000). Documented in `AUDIT #6`, still supported by `deploy/docker-compose.yml`.
+2. **Inline pre-check** (this entry — backend calls LT explicitly on each request).
+
+Pattern #2 was chosen for P1 because:
+
+- Production deploy uses Caddy → backend direct (no docker-compose), so the gateway pattern is not exercised live; the inline pre-check IS, the moment `LOBSTERTRAP_URL` is set.
+- Per-request audit trail: `dpi_check` field in the SHA-256 ledger chain → reviewers can inspect verdict-by-verdict whether DPI was active, allowed, denied, or fallback. The gateway pattern does not produce this trail (it just drops requests at the edge).
+- Composable with the gateway pattern (no conflict): when both are configured, requests pass through the gateway first and then the inline pre-check confirms (defense in depth).
+
+### Operational notes
+
+- Default LT timeout = 5.0s (`LOBSTERTRAP_TIMEOUT` in `lobstertrap_client.py`); LT is intended to be co-located on the same docker network so this is generous.
+- The DPI inspection endpoint is `POST {LOBSTERTRAP_URL}/dpi/inspect` with body `{content, direction: "inbound"}` — matches the Lobster Trap upstream documentation for inline-inspector mode.
+- `dpi_check` field is included in **every** ledger entry (both short-circuit and normal-path). Old entries do not have it; ledger schema is forward-additive.
+
+---
+
+## 11. 🟢 US-P3 — Demo mode without BYOK (2026-05-17, Day-7 pre-submit)
+
+### Problem
+
+The `Try it live` flow required visitors to paste their own Gemini API key
+(BYOK). Competitive intel (Pantheon `demo@pantheon.ai/pantheon2025`, Vela
+`demo@tryvela.io/demo1234`) showed both shortlisted competitors offer
+zero-friction demo credentials, while ours required a 90-second sign-up
+detour at `aistudio.google.com/apikey`. For TechEx + Milan judges
+evaluating dozens of submissions in a single afternoon, that friction
+materially reduces the chance of any judge actually touching the live demo.
+This closes that gap without inviting unbounded abuse of the shared key.
+
+### Change
+
+A new `POST /v1/demo_verify` endpoint runs the **same** verification
+pipeline as `/v1/verify` (DPI pre-check → Gemini writer → 9-attacker
+adversarial pass → INV-15 enforcement → SHA-256 ledger sign) but
+substitutes a server-side `DEMO_GEMINI_KEY` for the user-supplied one
+and applies a **per-IP daily rate limit** (5 calls / UTC day, default).
+
+Behavior matrix:
+
+| Condition | Response |
+|---|---|
+| `DEMO_GEMINI_KEY` env unset | `503` + `detail: "demo mode not configured"` |
+| IP under 5/day | `200` + identical `VerifyResponse` shape + `X-Apohara-Demo-Remaining: {n}` header |
+| IP at 5/day | `429` + `Retry-After: {seconds-to-UTC-midnight}` header + body `{detail, remaining: 0, reset_at}` |
+
+IP detection honors `X-Forwarded-For` (set by Caddy / Vultr load balancer)
+first, falling back to `request.client.host`. Distinct IPs receive
+independent quotas.
+
+### Files changed
+
+| Path | LOC | Purpose |
+|---|---|---|
+| `packages/backend/rate_limiter.py` | +54 (new) | `DailyRateLimiter(max_per_day)` class with `asyncio.Lock`, UTC-midnight rollover, clock indirection via `_utc_now` for testability |
+| `packages/backend/tests/test_rate_limiter.py` | +85 (new) | 5 unit tests: under_limit, at_limit (last call → remaining=0), over_limit (denial idempotent), midnight_reset_drops_yesterday, distinct_ips_independent |
+| `packages/backend/main.py` | +63 / -0 | `+from datetime import datetime, timezone`, `+from fastapi import Request, Response`, `+from rate_limiter import DailyRateLimiter`, `+DemoVerifyRequest` schema, `+_demo_limiter` singleton, `+_client_ip` helper, `+demo_verify` endpoint delegating to canonical `verify()` |
+| `packages/backend/tests/test_verify.py` | +101 (5 new tests appended) | `test_demo_unconfigured_503`, `test_demo_happy_path` (asserts remaining=4 header), `test_demo_rate_limit_429` (asserts Retry-After + reset_at body), `test_demo_x_forwarded_for_respected`, `test_demo_response_shape_matches_v1_verify` |
+| `packages/frontend/src/lib/api.ts` | +37 | `verifyDemoCode(code)` — POSTs `{task_input}` to `/v1/demo_verify`; maps 429 to "Demo limit reached — try again after {reset_at}..." and 503 to "Demo mode unavailable — please paste your Gemini key" |
+| `packages/frontend/src/components/ApiKeyInput.tsx` | +38 / -10 | `+onToggleDemo`, `+demoActive` props; Gift-icon button below the BYOK input; key input disabled when demo active; help text adapts to current mode |
+| `packages/frontend/src/App.tsx` | +10 / -4 | `+demoMode` state; `canVerify` allows submission when `demoMode \|\| apiKey.trim().length > 0`; routes to `verifyDemoCode(code)` vs `verifyCode({gemini_api_key, code})` accordingly |
+| `README.md` | +5 / -6 | `Try it live` section now lists 2 paths: demo (no signup, 5/day) + BYOK (no friction for repeat use) |
+
+### Test counts
+
+| Suite | Before P3 | After P3 |
+|---|---|---|
+| `test_verify.py` | 15 (post-P1) | 20 (+5 demo cases) |
+| `test_rate_limiter.py` | — | 5 (new) |
+| `test_lobstertrap_client.py` | 7 | 7 |
+| **Total backend** | **22** | **32** |
+
+Frontend: `npm run typecheck` → exit 0 (no TS errors); `npx eslint
+src/lib/api.ts src/components/ApiKeyInput.tsx src/App.tsx
+--max-warnings=0` → exit 0.
+
+### Decision rationale (why in-memory + asyncio.Lock vs Redis)
+
+The threat model for the demo rate limit is **casual judge exploration**,
+not adversarial abuse. The cap (5/IP/day) plus the per-call cost ceiling
+(`COST_CEILING_USD = 0.50` shared with `/v1/verify`) puts the daily worst
+case at $2.50/IP — bounded.
+
+In-memory dict + `asyncio.Lock` was chosen because:
+
+- **No new infra to provision** during the hackathon window (no Redis / no
+  external rate-limit service to deploy + secure + monitor before submit).
+- **Process-local state is acceptable**: the backend is a single uvicorn
+  worker behind Caddy; restarts reset quotas but that's tolerable for
+  demo mode (no SLA, no auth, no accountability).
+- **Upgrade path is documented**: production-grade abuse defense would
+  swap `_demo_limiter` for a Redis-backed sliding-window log (or a Caddy
+  rate-limit module on the ingress). Documented in this entry as the
+  post-hackathon follow-up.
+
+### Operational notes
+
+- **Quota semantics**: the rate-limit slot is consumed BEFORE the inner
+  `verify()` call runs. If the inner call raises (`_GeminiAuthError` →
+  HTTP 401, transport 502, etc.), the slot is still spent. Effective
+  semantics are "5 attempts per IP per UTC day", not "5 successes". A
+  healthy `DEMO_GEMINI_KEY` makes this a non-event; misconfiguration
+  would silently burn a judge's daily quota.
+- `DEMO_GEMINI_KEY` env var must be set on the backend process; the
+  `deploy/docker-compose.yml` env block + the systemd unit on the Vultr
+  droplet are the two places to wire it.
+- The rate limiter is a module-level singleton; tests inject a fresh
+  instance per test via `monkeypatch.setattr(backend_main, "_demo_limiter", ...)`.
+- The 429 body is `{"detail": {"detail": "demo limit reached for today", "remaining": 0, "reset_at": "<iso8601>"}}`. The double-`detail` is FastAPI's default envelope when `HTTPException(detail=dict)` is raised; the frontend reads `body.detail.reset_at` directly.
+- `X-Apohara-Demo-Remaining` response header surfaces the post-call count for the frontend to display (currently the UI does not render it; future enhancement).
+
+---
+
 ## US-MI2-014 — MI300X Wave C: paper-v2 re-validation (2026-05-17)
 
 Second Hot Aisle MI300X (`enc1-gpuvm010`) executed the paper-v2
