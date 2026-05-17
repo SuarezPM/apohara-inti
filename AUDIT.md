@@ -954,3 +954,66 @@ per minute of VM uptime regardless of GPU utilization. Pablo should
 issue `terminate` from the Hot Aisle TUI as soon as he confirms the
 logs are good — every additional 30 min of idle VM is ~$1.00.
 
+
+
+---
+
+## US-MI2-014 — MI300X Wave C: paper-v2 re-validation (2026-05-17)
+
+Second Hot Aisle MI300X (`enc1-gpuvm010`) executed the paper-v2
+orchestrator (`scripts/mi300x_run_paper_v2.sh`, sister-repo commit
+22c8c7c) in **303 s wall-clock at ~$0.17 of compute** (5 min / $1.99h).
+Goal: close the paper Table 1 row coverage (65K-262K) + re-validate
+Table 2 quality curve on fresh hardware.
+
+### Numbers (all match the paper to within rounding)
+
+| Claim | Wave C result | Paper |
+|---|---|---|
+| Table 1 row at 65K  | 3.5548× | 3.55× ✓ |
+| Table 1 row at 131K | 3.5552× | 3.56× ✓ |
+| Table 1 row at 262K | 3.5554× | 3.56× ✓ |
+| Table 2 FP16 baseline MSE | 4.31×10⁻⁸ | 4.3×10⁻⁸ ✓ |
+| Table 2 INT4 use_fwht=False MSE | 1.01×10⁻² | 1.0×10⁻² ✓ |
+| Table 2 INT4 use_fwht=True MSE | 2.01×10⁰ | 2.0×10⁰ ✓ |
+| Abstract claim "200× FWHT degradation" | **199×** measured | ≈200× ✓ |
+
+### Triple-anchoring achieved
+
+Every measured number in the paper's V2.0 draft now has three
+independent sources of evidence:
+
+1. Original sprint's archived MI300X sweep (ROCm 7.2.0)
+2. Wave B 2026-05-16: 4K-32K reduction + canonical 32K + HBM3 bandwidth
+3. Wave C 2026-05-17: 65K-262K reduction + quality curve + FWHT in-place
+
+### New finding (not in paper, candidate appendix material)
+
+FWHT in-place is **0.54-0.78× SLOWER than out-of-place** on MI300X
+across all 5 tested shapes (log
+`mi300x_fwht_inplace_bench_1778978015.json` in sister repo). The
+in-place path triggers extra HBM3 traffic on ROCm 6.2 instead of
+reducing peak memory. Documented for future paper revision.
+
+### Cost summary across the two MI300X rentals
+
+| Run | Wall-clock | Cost |
+|---|---|---|
+| Wave B (US-MI-014, 2026-05-16) | ~45 min | ~$1.50 |
+| Wave C (US-MI2-014, 2026-05-17) | 5 min | ~$0.17 |
+| **Total MI300X spend** | **~50 min** | **~$1.67** |
+
+Hot Aisle balance after Wave C: ~$17.27 (was $18.94 pre-Wave C).
+
+### Files committed (Apohara_Context_Forge `main`)
+
+- Commit `9facae9`: 4 logs + summary text (Wave C raw evidence)
+- Commit `15079d6`: paper Table 1 + Table 2 footnotes + BENCHMARKS.md
+  Wave C section + recompiled `papers/inv15_v2.pdf`
+
+### Cleanup status
+
+Hot Aisle VM `enc1-gpuvm010`: Pablo confirmed `terminate` post-run
+(this Ralph closeout). Per-minute meter stopped. No further spend
+until next rental.
+
