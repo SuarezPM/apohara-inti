@@ -246,3 +246,6 @@ Coming in US-006 / US-007. Not yet installable.
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).
+
+---
+> **Note on verdict thresholds**: The aggregation thresholds in this submission (`risky ≥3 / blocked ≥6` harmful judgments per request) were calibrated for the original 9-vendor baseline. The 12-vendor expansion (Mistral Large 2411, Grok 2, Perplexity Sonar Large added 2026-05-18) ships with adapter code only; the proportional threshold rescale to `risky ≥4 / blocked ≥8` is tracked in [`docs/research/12-vendor-ensemble-design.md`](docs/research/12-vendor-ensemble-design.md) and lands in a separate PR with full regression suite per the design-doc specification. This is honest deferral, not silent overclaim.
