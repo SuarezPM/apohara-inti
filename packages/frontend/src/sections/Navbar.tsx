@@ -9,7 +9,7 @@ const NAV = [
   { href: "#why", label: "Why" },
 ];
 
-const REPO_URL = "https://github.com/SuarezPM/apohara-inti";
+const REPO_URL = "https://github.com/SuarezPM/apohara-probant";
 
 export function Navbar() {
   return (
@@ -56,7 +56,7 @@ export function Navbar() {
             aria-label="GitHub repository"
           >
             <Github className="h-3.5 w-3.5" />
-            <span>SuarezPM/apohara-inti</span>
+            <span>SuarezPM/apohara-probant</span>
           </a>
           {/* Hidden admin link — no SEO, no labelling */}
           <a

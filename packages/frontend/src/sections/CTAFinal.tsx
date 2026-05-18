@@ -1,7 +1,7 @@
 import { ArrowRight, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const REPO_URL = "https://github.com/SuarezPM/apohara-inti";
+const REPO_URL = "https://github.com/SuarezPM/apohara-probant";
 
 export function CTAFinal() {
   return (

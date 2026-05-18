@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MythosBadge } from "@/components/MythosBadge";
 
-const REPO_URL = "https://github.com/SuarezPM/apohara-inti";
+const REPO_URL = "https://github.com/SuarezPM/apohara-probant";
 const PAPER_DOI = "https://doi.org/10.5281/zenodo.20114594";
 
 export function Hero() {
@@ -66,7 +66,7 @@ export function Hero() {
             <dl className="grid grid-cols-3 gap-6 pt-6 border-t border-border/40 max-w-md">
               <div>
                 <dt className="text-xs text-muted-foreground font-mono">Vendors</dt>
-                <dd className="text-2xl font-pixel-sans text-primary mt-1">9</dd>
+                <dd className="text-2xl font-pixel-sans text-primary mt-1">12</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground font-mono">JBB block</dt>
@@ -108,8 +108,9 @@ export function Hero() {
 {`> verify "def divide(a,b): return a/b"
 [1/3] gemini-3-pro writing review...
 [2/3] dispatching 12 attackers...
-      claude · gpt · deepseek · kimi
-      glm · qwen · nemotron · minimax · big-pickle
+      claude · gpt · deepseek · kimi · glm
+      qwen · nemotron · minimax · mistral
+      grok · perplexity · big-pickle
 [3/3] INV-15 isolation enforced
 `}
 <span className="text-primary">verdict: verified</span><span className="animate-blink text-primary">█</span>

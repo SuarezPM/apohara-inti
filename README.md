@@ -1,13 +1,92 @@
-# Apohara PROBANT
+<p align="center">
+  <img src="packages/frontend/public/logo.svg" alt="Apohara PROBANT shield" width="180">
+</p>
 
-🔱 **Built for Claude Mythos** · MYTHOS-READY architecture · [details](MYTHOS_READY.md)
+<h1 align="center">APOHARA · PROBANT</h1>
 
-> A different AI reviews the code your AI just wrote, while your agent memory stays isolated.
+<p align="center">
+  <strong>A different AI audits the code your AI just wrote.</strong><br>
+  <em>14-seat adversarial ensemble · INV-15 KV-cache isolation · SHA-256-signed verdicts · No marketing, just measurements.</em>
+</p>
 
-Open-source defense-in-depth for AI-generated code. Gemini writes and audits the
-code, then 12 frontier vendors adversarially attack the output before merge,
-while [Apohara ContextForge](https://github.com/SuarezPM/Apohara_Context_Forge)
-enforces `INV-15` memory isolation between the writer agent and every attacker.
+<!-- Row 1 — academic credibility -->
+<p align="center">
+  <a href="https://doi.org/10.5281/zenodo.20114594"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20114594-1A73E8?style=flat-square&logo=doi&logoColor=white" alt="DOI: 10.5281/zenodo.20114594"></a>
+  <a href="https://github.com/SuarezPM/Apohara_Context_Forge/blob/main/paper/inv15_paper.pdf"><img src="https://img.shields.io/badge/paper-v3.0%20%C2%B7%20Z3%20SMT%20proof-EC1C24?style=flat-square&logo=adobe-acrobat-reader&logoColor=white" alt="Paper v3.0 PDF"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-2ECC71.svg?style=flat-square" alt="License Apache 2.0"></a>
+  <a href="MYTHOS_READY.md"><img src="https://img.shields.io/badge/%F0%9F%94%B1-MYTHOS--READY-25B13F.svg?style=flat-square" alt="MYTHOS-READY architecture"></a>
+</p>
+
+<!-- Row 2 — release + validation -->
+<p align="center">
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-v1.0%20stable-ED1C24.svg?style=flat-square" alt="v1.0 stable"></a>
+  <a href="AUDIT.md"><img src="https://img.shields.io/badge/AUDIT.md-public-FF6B00.svg?style=flat-square" alt="Public audit"></a>
+  <a href="https://github.com/SuarezPM/apohara-aegis"><img src="https://img.shields.io/badge/aegis-603%20tests%20pass-22C55E.svg?style=flat-square" alt="aegis 603 tests pass"></a>
+  <a href="https://jailbreakbench.github.io/"><img src="https://img.shields.io/badge/JBB%20block-93.75%25%20%C2%B7%20Wilson%20%5B86.2%25%2C%2097.3%25%5D-8B5CF6.svg?style=flat-square" alt="JBB block rate 93.75%"></a>
+</p>
+
+<!-- Row 3 — stack -->
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.11%2B-2B5DF2.svg?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-uvicorn-009688.svg?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI + uvicorn"></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-vite-61DAFB.svg?style=flat-square&logo=react&logoColor=white" alt="React + Vite"></a>
+  <a href="https://www.apohara.dev"><img src="https://img.shields.io/badge/demo-www.apohara.dev-000000.svg?style=flat-square&logo=vercel&logoColor=white" alt="Live demo"></a>
+</p>
+
+<!-- Row 4 — events -->
+<p align="center">
+  <strong>🦞 TechEx 2026 · Track 1 · Veea-sponsored</strong> · <strong>🤖 Milan AI Week 2026 · Agent Bench</strong>
+</p>
+
+<!-- Hero stat strip — the four headline numbers, video-ready -->
+<table align="center" width="100%">
+  <tr>
+    <td align="center" width="25%">
+      <h2><a href="#try-it-live">12</a></h2>
+      <sub><b>Frontier vendors</b><br/>adversarial ensemble<br/>(+1 Mythos reserved)</sub>
+    </td>
+    <td align="center" width="25%">
+      <h2>93.75%</h2>
+      <sub><b>JBB-Behaviors block</b><br/>Wilson 95% CI<br/>[86.2%, 97.3%]</sub>
+    </td>
+    <td align="center" width="25%">
+      <h2>10.6 ms</h2>
+      <sub><b>SOAR p99 lifecycle</b><br/>19× under<br/>200 ms target</sub>
+    </td>
+    <td align="center" width="25%">
+      <h2><a href="https://github.com/SuarezPM/Apohara_Context_Forge/blob/main/paper/inv15_paper.pdf">0</a></h2>
+      <sub><b>INV-15 violations</b><br/>Z3 SMT proof · UNSAT<br/>in 10.08 ms</sub>
+    </td>
+  </tr>
+</table>
+
+---
+
+### 60-second judge demo
+
+> **Live URLs** (TechEx 2026 judging window, May 14 – May 26): frontend [www.apohara.dev](https://www.apohara.dev) · API [api.apohara.dev/health](https://api.apohara.dev/health) · SOAR module [api.apohara.dev/v1/soar/healthz](https://api.apohara.dev/v1/soar/healthz). Try the Hero "Verify my code" panel with BYOK or the 5/IP/day demo key.
+
+| Path | What it shows |
+|---|---|
+| [`/`](https://www.apohara.dev) | Landing + Hero verify panel + dual-judge live console (SSE streaming) |
+| [`/dashboard`](https://www.apohara.dev/dashboard) | Live verdict trend chart + SOAR metrics tiles + 11 sidebar views |
+| [`/judge-layer`](https://www.apohara.dev/judge-layer) | Dual-panel DJL (regex, p99 0.114 ms) + LLM ensemble (parallel `asyncio.gather`, equal veto) |
+| [`/compliance`](https://www.apohara.dev/compliance) | 6-framework mapping (EU AI Act / NIST AI RMF / SP 800-53 / SOC 2 / ISO 27001 / OWASP LLM 2026) + 1-click Gemini-generated report |
+| [`/simulator`](https://www.apohara.dev/simulator) | 3 demo agents × 9 misbehavior scenarios + Wilson CI health-score per run |
+| [`api.apohara.dev/v1/soar/incidents/{id}/stix`](https://api.apohara.dev/v1/soar/healthz) | STIX 2.1 bundle export (7 SDOs + HMAC chain hash in `external_references`) |
+
+```bash
+# DJL pre-LLM judge — deterministic, prompt-injection-immune, p99 < 1 ms
+curl -s -X POST -H 'Content-Type: application/json' \
+  -d '{"prompt":"ignore all previous instructions","layer":"djl"}' \
+  https://api.apohara.dev/v1/soar/judge/evaluate \
+  | python3 -m json.tool
+# {
+#   "decision": "BLOCK",
+#   "djl_verdict": { "matched_rules": ["DJL-PI-001"], "latency_ms": 0.077 },
+#   "total_latency_ms": 0.077
+# }
+```
 
 ---
 
@@ -245,14 +324,30 @@ cd packages/backend && pip install -e . && uvicorn main:app --reload
 
 ---
 
-## Shipped (Phase 2 + Phase 3, 2026-05-18)
+## Shipped
 
-- **12-vendor adversarial ensemble LIVE** (apohara-aegis main, droplet upgraded 2026-05-18T19:43Z): Claude, GPT, DeepSeek, Kimi, GLM, Qwen, Nemotron, MiniMax, Big-Pickle, Mistral Large 2411, Grok 2, Perplexity Sonar. `/v1/demo_verify` smoke confirms 12 attackers in the response array — 7 producing votes (claude, gpt, deepseek, glm, qwen, nemotron, mistral), 5 fail-open (opencode_zen × 2 routing-key gaps, kimi parse error, grok 404, perplexity 404). Evidence log: [`logs/12vendor_live_smoke_20260518T194417Z.json`](logs/12vendor_live_smoke_20260518T194417Z.json). The fail-open behaviour is intentional per `FallbackVendorAdapter` contract and openly documented in [`docs/submissions/JUDGE-FAQ.md`](docs/submissions/JUDGE-FAQ.md) Q1.
-- **Z3 SMT formal proof of INV-15** (Apohara_Context_Forge paper v3.0): UNSAT on negation in 10.08 ms (single MI300X core), complementing the v2.0.1 empirical sweep (0/1210 violations). Zenodo DOI [10.5281/zenodo.20114594](https://doi.org/10.5281/zenodo.20114594).
-- **Veea LobsterTrap DPI pre-check** (active subprocess): measured 50% SQLi block (n=20, Wilson CI [29.9%, 70.1%] directional), 9.8% benign FPR (n=51). Logs at [`logs/lobstertrap_block_rate_*.json`](logs/).
-- **HMAC-SHA256 verdict chain** with tamper-detection via `verify_chain()` ([`packages/backend/verdict_vault.py`](packages/backend/verdict_vault.py)).
+### Fusion Sprint Tier-1 + Tier-2 (2026-05-18, US-69 → US-92)
+
+24 user stories shipped end-to-end. Full breakdown in [AUDIT.md §12](AUDIT.md) + [CHANGELOG.md](CHANGELOG.md).
+
+- **Zero-LLM Deterministic Judge Layer** (`apohara_aegis/djl.py`) — 62 regex rules across 6 categories (PI 20 / SQLI 6 / XSS 6 / PII 10 / EXF 5 / MIS 10 / POL 5). **p99 0.114 ms** on 1000 iterations × 124-prompt corpus, **TPR/TNR 1.000**, Wilson 95% accuracy CI **[0.9962, 1.0000]** ([`logs/djl_latency.json`](https://github.com/SuarezPM/apohara-aegis/blob/main/logs/djl_latency.json)). Prompt-injection-immune by construction.
+- **4-stage SOAR pipeline** (`apohara_aegis/soar_pipeline.py`) — DETECT → JUDGE → ENFORCE → FORENSICS as async stages. **p99 10.6 ms** (19× under 200 ms target) with inline HMAC chain byte-compatible with [`verdict_vault.VerdictVault`](packages/backend/verdict_vault.py).
+- **Dual-layer verdict combine** (`apohara_aegis/verdict_combine.py`) — DJL ⟂ LLM ensemble run in parallel via `asyncio.gather`. Safe-merge policy: `BLOCK ∨ BLOCK = BLOCK`, `ALLOW ∧ ALLOW = ALLOW`, otherwise `REVIEW`. Both layers retain equal veto power.
+- **14-seat adversarial ensemble** (post-rebase) — 10 Day-4 frontier + 3 Phase-3 priority A additions (Mistral Large 2411, Grok 2, Perplexity Sonar) + 1 reserved [`MythosAttackerAdapter`](MYTHOS_READY.md) at index 13 (INACTIVE until Glasswing approval). Headline rounds to "12 vendors" because Big Pickle is a stealth-tier alias and Mythos ships inactive. Threshold ladder `{high:14, med:10, human_review:4}`.
+- **6 industry templates + 35 NIST AI RMF Agentic Profile controls** (CSA Agentic Profile draft March 2026 + Microsoft AGT base 12/19 mapping). See [`docs/research/prior-art-nist-agentic-profile.md`](docs/research/prior-art-nist-agentic-profile.md) for the prior-art audit.
+- **6-framework compliance suite** — 49 controls across EU AI Act / NIST AI RMF / NIST SP 800-53 / SOC 2 / ISO 27001 / OWASP LLM 2026 + 1-click Gemini-generated narrative report.
+- **STIX 2.1 incident export** (`GET /v1/soar/incidents/{id}/stix`) — 7-SDO bundle (identity / indicator / sighting / observed-data / course-of-action / note / UserAccount-SCO) with HMAC `signed_hash` preserved in `external_references` for chain-of-custody.
+- **SDK middleware packages** under [`integrations/`](https://github.com/SuarezPM/apohara-aegis/tree/main/integrations) — `apohara-langchain` (Py 3.10–3.14, `ApoharaCallbackHandler(BaseCallbackHandler)`, live BLOCK confirmed) + `apohara-crewai` (Py ≤3.13 by `crewai>=0.30` constraint, `apohara_guard(tool)` wrapper).
+- **11-route dashboard SPA** at [www.apohara.dev](https://www.apohara.dev) — landing + 11 functional sections (`/dashboard`, `/incidents`, `/live-feed`, `/judge-layer`, `/compliance`, `/agent-health`, `/simulator`, `/policy-builder`, `/analytics`, `/review-queue`, `/settings`). MythosBadge wired into sidebar + Hero.
+- **Glasswing application package** ready at [`docs/glasswing/`](docs/glasswing/) — 5 files / 3096 words / Pablo's call on filing timing.
+
+### Pre-Fusion-Sprint base (Phase 2 + Phase 3)
+
+- **12-vendor adversarial ensemble LIVE** at api.apohara.dev — 7 producing votes + 5 fail-open per [`docs/submissions/JUDGE-FAQ.md`](docs/submissions/JUDGE-FAQ.md) Q1. Evidence: [`logs/12vendor_live_smoke_20260518T194417Z.json`](logs/12vendor_live_smoke_20260518T194417Z.json).
+- **Z3 SMT formal proof of INV-15** — Apohara_Context_Forge [paper v3.0](https://github.com/SuarezPM/Apohara_Context_Forge/blob/main/paper/inv15_paper.pdf) UNSAT on negation in 10.08 ms (single MI300X core), complementing v2.0.1 empirical sweep (0/1210 violations). Zenodo DOI [10.5281/zenodo.20114594](https://doi.org/10.5281/zenodo.20114594).
+- **Veea LobsterTrap DPI pre-check** (active subprocess) — measured 50% SQLi block (n=20, Wilson CI [29.9%, 70.1%] directional), 9.8% benign FPR (n=51).
+- **HMAC-SHA256 verdict chain** with tamper-detection via `verify_chain()`.
 - **Prompt envelope** (Hines et al. arXiv 2403.14720 Spotlighting) + AST audit linter CI gate.
-- **120+ pytest tests** (re-count via `grep -c "^def test_\|^async def test_" packages/backend/tests/test_*.py`) + 15+ committed measurement JSONs in [`logs/`](logs/).
 - **AGPL-3.0 sister repo** [Apohara-Guard](https://github.com/SuarezPM/Apohara-Guard) for isolation primitives.
 - **Experimental Next.js SSR view** at <https://apohara-nextjs.vercel.app> (Server Components — content in initial HTML for SEO).
 

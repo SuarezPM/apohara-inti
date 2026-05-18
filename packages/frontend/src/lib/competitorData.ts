@@ -46,12 +46,12 @@ export const TIER_1: Tier1Competitor[] = [
       value: "INV-15 (JCRSafetyGate)",
       source: "DOI 10.5281/zenodo.20114594 + Apohara_Context_Forge/apohara_context_forge/safety/jcr_gate.py",
     },
-    license: { value: "Apache-2.0", source: "github.com/SuarezPM/apohara-inti/blob/main/LICENSE" },
+    license: { value: "Apache-2.0", source: "github.com/SuarezPM/apohara-probant/blob/main/LICENSE" },
     cost: {
       value: "Free + BYOK or 5/IP/day demo",
       source: "packages/backend/rate_limiter.py (DailyRateLimiter max_per_day=5, UTC rollover)",
     },
-    source: { label: "github.com/SuarezPM/apohara-inti", url: "https://github.com/SuarezPM/apohara-inti" },
+    source: { label: "github.com/SuarezPM/apohara-probant", url: "https://github.com/SuarezPM/apohara-probant" },
   },
   {
     name: "Pantheon",
