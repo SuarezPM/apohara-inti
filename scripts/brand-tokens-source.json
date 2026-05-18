@@ -1,0 +1,16 @@
+{
+  "lime":  "#25B13F",
+  "dark":  "#2A2D3A",
+  "bone":  "#EDEFF0",
+  "ink":   "#0E1010",
+  "red":   "#B8262A",
+  "bg_void":   "#0D0F18",
+  "bg_mid":    "#1E2130",
+  "bg_raised": "#222640",
+  "source_files": [
+    "packages/frontend/tailwind.config.js",
+    "packages/frontend/src/index.css"
+  ],
+  "notes": "Verified from tailwind.config.js apohara.* color block. lime is #25B13F (not #16D63A — actual differs from AC3 default). All values are direct reads, not invented.",
+  "verified_at": "2026-05-18T00:00:00Z"
+}
