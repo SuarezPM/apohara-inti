@@ -70,6 +70,11 @@ from lobstertrap_client import (
     check_response_with_lobstertrap,
 )
 from rate_limiter import DailyRateLimiter
+# rule_of_two: defensive gate, available for future destructive endpoints
+# (auto-merge, auto-deploy, /v1/admin/* mutations). Not currently called in
+# the read-only /v1/verify + /v1/audit flow. Imported here to mark the
+# module as live and to keep `assert_human_in_loop` discoverable.
+from rule_of_two import assert_human_in_loop as _rot_assert  # noqa: F401
 from verdict_vault import VerdictVault, ZERO_HASH as _VAULT_ZERO_HASH
 
 # ---------------------------------------------------------------------------
