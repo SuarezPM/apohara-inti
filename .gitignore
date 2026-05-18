@@ -43,3 +43,7 @@ docs/*-submission.md
 docs/pre-submit-*.md
 docs/paper-upload-guide.md
 docs/paper-metadata.yaml
+
+# Maintainer-only private notes (NEVER commit)
+CLAUDE.local.md
+CLAUDE.local.*
