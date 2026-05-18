@@ -82,17 +82,28 @@ export function Footer() {
 
         <div className="mt-10 pt-6 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-mono text-muted-foreground">
           <p>&copy; 2026 Apohara &mdash; Apache-2.0 OSS</p>
-          <p>
-            Powered by{" "}
+          <p className="flex items-center gap-3">
+            <span>
+              Powered by{" "}
+              <a
+                href="https://github.com/SuarezPM/Apohara_Context_Forge"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Apohara Context Forge
+              </a>
+              {" "}&middot; INV-15 enforced
+            </span>
             <a
-              href="https://github.com/SuarezPM/Apohara_Context_Forge"
+              href="https://apohara-nextjs.vercel.app"
               target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              rel="noopener"
+              className="text-xs opacity-60 hover:opacity-100 hover:text-primary transition-opacity"
+              title="Experimental SSR-rendered Next.js preview"
             >
-              Apohara Context Forge
+              Experimental SSR view
             </a>
-            {" "}&middot; INV-15 enforced
           </p>
         </div>
       </div>
