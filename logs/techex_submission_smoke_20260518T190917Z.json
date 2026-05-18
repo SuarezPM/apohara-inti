@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-05-18T19:09:17.206678+00:00",
+  "smoke_id": "techex-2026-final",
+  "ssh_droplet_22": "TIMEOUT (Pablo noVNC fix pending; fail2ban suspect)",
+  "ssh_droplet_443_health": "OK",
+  "endpoints": {
+    "www_apohara_dev": {
+      "url": "https://www.apohara.dev",
+      "method": "GET",
+      "http_code": "200",
+      "time_total_s": "0.252209",
+      "body_preview": "<!doctype html>\n<html lang=\"en\" class=\"dark\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <meta name=\"theme-color\" content=\"#2A2D3A\" media=\"(prefers-color-scheme: dark)\" />\n    <meta name=\"theme-color\" content=\"#EDEFF0\" media",
+      "exit_code": 0
+    },
+    "api_health": {
+      "url": "https://api.apohara.dev/health",
+      "method": "GET",
+      "http_code": "200",
+      "time_total_s": "0.553095",
+      "body_preview": "{\"status\":\"ok\",\"deps\":{\"aegis\":\"loaded\",\"contextforge\":\"loaded\"},\"version\":\"0.1.0\"}",
+      "exit_code": 0
+    },
+    "api_demo_verify": {
+      "url": "https://api.apohara.dev/v1/demo_verify",
+      "method": "POST",
+      "http_code": "000",
+      "time_total_s": "20.002370",
+      "body_preview": "{\"status\":\"ok\",\"deps\":{\"aegis\":\"loaded\",\"contextforge\":\"loaded\"},\"version\":\"0.1.0\"}",
+      "exit_code": 28
+    },
+    "apohara_nextjs_ssr": {
+      "url": "https://apohara-nextjs.vercel.app",
+      "method": "GET",
+      "http_code": "200",
+      "time_total_s": "0.302683",
+      "body_preview": "<!DOCTYPE html><!--_DCXkJAJ2cWhNLlRROsJB--><html lang=\"en\" class=\"dark\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"preload\" as=\"image\" href=\"/logo.svg\"/><link rel=\"stylesheet\" href=\"/_next/static/css/5993c8e8df37823a.css\" data-precede",
+      "exit_code": 0
+    },
+    "github_apohara_probant": {
+      "url": "https://github.com/SuarezPM/apohara-probant",
+      "method": "GET",
+      "http_code": "200",
+      "time_total_s": "1.172275",
+      "body_preview": "\n\n\n\n\n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  data-a11y-animated-images=\"system\" data-a11y-link-underlines=\"true\"\n  \n  >\n\n\n\n\n  <head>\n    <meta charset=\"utf-8\">\n  <link rel=\"dns-prefetch\" href=\"https://github.githubassets.com\">\n",
+      "exit_code": 0
+    },
+    "github_apohara_aegis": {
+      "url": "https://github.com/SuarezPM/apohara-aegis",
+      "method": "GET",
+      "http_code": "200",
+      "time_total_s": "1.118796",
+      "body_preview": "\n\n\n\n\n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  data-a11y-animated-images=\"system\" data-a11y-link-underlines=\"true\"\n  \n  >\n\n\n\n\n  <head>\n    <meta charset=\"utf-8\">\n  <link rel=\"dns-prefetch\" href=\"https://github.githubassets.com\">\n",
+      "exit_code": 0
+    },
+    "github_context_forge": {
+      "url": "https://github.com/SuarezPM/Apohara_Context_Forge",
+      "method": "GET",
+      "http_code": "200",
+      "time_total_s": "1.063090",
+      "body_preview": "\n\n\n\n\n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  data-a11y-animated-images=\"system\" data-a11y-link-underlines=\"true\"\n  \n  >\n\n\n\n\n  <head>\n    <meta charset=\"utf-8\">\n  <link rel=\"dns-prefetch\" href=\"https://github.githubassets.com\">\n",
+      "exit_code": 0
+    },
+    "github_apohara_guard": {
+      "url": "https://github.com/SuarezPM/Apohara-Guard",
+      "method": "GET",
+      "http_code": "200",
+      "time_total_s": "0.968111",
+      "body_preview": "\n\n\n\n\n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  data-a11y-animated-images=\"system\" data-a11y-link-underlines=\"true\"\n  \n  >\n\n\n\n\n  <head>\n    <meta charset=\"utf-8\">\n  <link rel=\"dns-prefetch\" href=\"https://github.githubassets.com\">\n",
+      "exit_code": 0
+    }
+  },
+  "cursor_vsix_check": {
+    "path": "plugins/cursor-claude/apohara-probant-verify-0.1.0.vsix",
+    "expected_manifest": [
+      "extension.vsixmanifest",
+      "extension/package.json",
+      "extension/plugin.json"
+    ],
+    "verified": true
+  },
+  "summary": {
+    "live_urls_passing": 6,
+    "live_urls_failing": 1,
+    "vsix_ok": true,
+    "ssh_blocked": true,
+    "blocked_actions": [
+      "US-T-03 droplet upgrade",
+      "US-T-13 frontend copy decision branch"
+    ]
+  }
+}
