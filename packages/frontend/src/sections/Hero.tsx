@@ -80,20 +80,16 @@ export function Hero() {
           {/* Right 40% — mascot + terminal mockup */}
           <div className="lg:col-span-2 space-y-4">
             <div
-              className="matrix-rain aspect-square rounded-md border border-primary/30 flex items-center justify-center"
+              className="aspect-square rounded-md border border-border/30 bg-apohara-dark flex items-center justify-center"
               aria-hidden="true"
             >
-              <div className="relative z-10 text-center">
-                <img
-                  src="/logo.svg"
-                  alt="Apohara shield mark"
-                  width={320}
-                  height={320}
-                  className="mx-auto w-[70%] max-w-[280px]"
-                />
-                <p className="mt-2 font-pixel-sans text-xs text-primary tracking-wider">APOHARA</p>
-                <p className="mt-1 font-mono text-[10px] text-muted-foreground uppercase">: Inti</p>
-              </div>
+              <img
+                src="/logo.svg"
+                alt="Apohara shield mark"
+                width={320}
+                height={320}
+                className="w-[55%] max-w-[240px]"
+              />
             </div>
 
             <div className="rounded-md border border-border/40 bg-apohara-bg-void overflow-hidden">

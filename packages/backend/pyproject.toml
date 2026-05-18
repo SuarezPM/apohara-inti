@@ -16,6 +16,13 @@ dependencies = [
 dev = ["pytest>=9.0", "pytest-asyncio>=0.24", "httpx>=0.27"]
 
 [tool.setuptools]
-# Flat-layout module list — explicit since P1+P3 added lobstertrap_client +
-# rate_limiter alongside main.py, which trips setuptools auto-discovery.
-py-modules = ["main", "lobstertrap_client", "rate_limiter"]
+# Flat-layout module list — explicit since US-006+P1+P3+US-RAPTOR+US-GUARD
+# added modules alongside main.py, which trips setuptools auto-discovery.
+py-modules = [
+  "main",
+  "lobstertrap_client",
+  "rate_limiter",
+  "envelope",
+  "verdict_vault",
+  "judge_gates",
+]

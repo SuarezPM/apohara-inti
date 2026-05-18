@@ -55,6 +55,38 @@ H100 deferred)** — full honesty disclosure in the JSON `honesty_note`.
 
 ---
 
+## Hardening (2026-05-18 — RAPTOR + Guard ports)
+
+Three additional moats shipped pre-hackathon-deadline, all auditable in the
+backend repo:
+
+- **Prompt envelope** (`packages/backend/envelope.py`) — every untrusted block
+  (`task_input`, `gemini_output`) is wrapped in per-request nonce-tagged
+  sentinels using the Spotlighting defense pattern (Hines et al. arXiv
+  2403.14720). Tag-forgery prompt injection cannot break framing because
+  the nonce is fresh-random per request and not guessable by attackers.
+  A CI-gateable AST linter (`packages/backend/scripts/prompt_envelope_audit.py`)
+  flags raw f-string interpolation of untrusted attrs — 0 violations on
+  `main` branch.
+- **HMAC-signed verdict chain** (`packages/backend/verdict_vault.py`) — every
+  `/v1/verify` response carries an HMAC-SHA256 signature linked into a
+  SHA-256 chain. `verify_chain()` independently re-derives both the payload
+  hash and the signature, detecting payload tamper, signature tamper, and
+  key rotation. Set `APOHARA_LEDGER_HMAC_KEY` in production for stable
+  signatures across restarts.
+- **NO-HEDGING gate** (`packages/backend/judge_gates.py`) — judge verdicts
+  containing hedge words (`might`, `maybe`, `possibly`, `could potentially`,
+  ...) are auto-annotated `[HEDGED:word]` in the response so operators see
+  model uncertainty surfaced rather than masked.
+
+Acknowledgment: these patterns are ports from
+[`gadievron/raptor`](https://github.com/gadievron/raptor) (MIT, attribution
+preserved in `THIRD_PARTY_NOTICES.md`) and from the sister project Apohara
+Guard's `EvidenceVault`. Both fit Apohara Inti's audit-first design without
+modification.
+
+---
+
 ## How we compare
 
 A scan of the May 2026 LLM-safety / cross-AI-review space. Each column is
