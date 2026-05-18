@@ -1,10 +1,20 @@
 # Pablo Handoff — Submission freeze actions (T+5:09)
 
+> **DECISION BRANCH RESOLVED**: ship **`.9vendor.md` variants** (droplet runs 9-vendor; SSH stuck so 12-vendor upgrade deferred to post-hackathon).
+>
 > Sections below are copy-paste ready for manual execution at T+5:09 FREEZE.
-> `[VENDOR_COUNT]` = "9" or "12" — the ralph lead will confirm which at T+2:00.
-> `[FROZEN_URLS]` = URLs confirmed live by the ralph lead at T+2:00.
 >
 > Each section starts with a hold instruction. Exception: video recording (you pace yourself).
+>
+> **Confirmed live URLs (smoke 2026-05-18 19:09 UTC, log `logs/techex_submission_smoke_20260518T190917Z.json`)**:
+> - ✅ https://www.apohara.dev (HTTP/2 200)
+> - ✅ https://api.apohara.dev/health (200)
+> - ✅ https://apohara-nextjs.vercel.app (SSR PoC, 200)
+> - ✅ https://github.com/SuarezPM/apohara-probant (200)
+> - ✅ https://github.com/SuarezPM/apohara-aegis (200)
+> - ✅ https://github.com/SuarezPM/Apohara_Context_Forge (200)
+> - ✅ https://github.com/SuarezPM/Apohara-Guard (200, new — public push commit `2502072`)
+> - ⚠️ `/v1/demo_verify` is timing out — Gemini key likely exhausted; judges using **BYOK on `/v1/verify`** still works. **Mention "BYOK demo, 5 free/IP/day"** in the submission if asked.
 
 ---
 
@@ -19,7 +29,7 @@
 3. Click **"Submit project"** (blue button, top-right of the event page).
 4. Fill each form field using the source file:
 
-   **Source file:** `docs/submissions/techex-2026-submission.[VENDOR_COUNT]vendor.md`
+   **Source file:** `docs/submissions/techex-2026-submission.9vendor.md` (decision branch resolved per header)
 
    | Form field | Where to find it in the .md | Paste exactly |
    |---|---|---|
@@ -62,7 +72,7 @@ EOF
 3. Click **"Submit project"**.
 4. Fill each form field using the source file:
 
-   **Source file:** `docs/submissions/milan-aiweek-2026-submission.[VENDOR_COUNT]vendor.md`
+   **Source file:** `docs/submissions/milan-aiweek-2026-submission.9vendor.md` (decision branch resolved per header)
 
    | Form field | Where to find it in the .md | Paste exactly |
    |---|---|---|
@@ -147,13 +157,13 @@ Do not delete or modify the v2.0.1 deposit. The `isNewVersionOf` relation preser
 | 1:30–2:30 | Benign code — SSE streaming | 9 vendor cards resolve in real time |
 | 2:30–3:30 | Repo tour — research credentials | logs/ directory, JBB JSON, Zenodo DOI page |
 | 3:30–4:30 | Distribution channels | Cursor VSIX, /dashboard, MCP config |
-| 4:30–5:00 | Close | `github.com/SuarezPM/apohara-inti` hold |
+| 4:30–5:00 | Close | `github.com/SuarezPM/apohara-probant` hold (formerly `apohara-inti`) |
 
 ### Mandatory on-screen overlays (see script for timestamps)
 
-`LobsterTrap DPI — pre-LLM interception` · `50% SQLi block · 9.8% FPR · logs/ in repo` · `9 vendors · SSE streaming · INV-15 isolated` · `JBB block rate 93.75% · Wilson CI [86.2%, 97.3%]` · `Z3 SMT formal proof · UNSAT in 10.08 ms` · `Cursor VSIX · MCP server · /dashboard · Apache-2.0` · `github.com/SuarezPM/apohara-inti · Pablo M. Suarez`
+`LobsterTrap DPI — pre-LLM interception` · `50% SQLi block · 9.8% FPR · logs/ in repo` · `9 vendors · SSE streaming · INV-15 isolated` · `JBB block rate 93.75% · Wilson CI [86.2%, 97.3%]` · `Z3 SMT formal proof · UNSAT in 10.08 ms` · `Cursor VSIX · MCP server · /dashboard · Apache-2.0` · `github.com/SuarezPM/apohara-probant · Pablo M. Suarez`
 
-(Adjust "9 vendors" to "12 vendors" in the overlay if the 12-vendor variant is selected by the ralph lead at T+2:00.)
+(Decision branch resolved to **9-vendor staged**: keep "9 vendors" in overlays. The 12-vendor adapter expansion is documented in submission long-desc as "expansion staged in apohara-aegis main; production upgrade deferred to next deploy cycle" — honest framing.)
 
 ### Upload
 
