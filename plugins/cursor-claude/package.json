@@ -1,0 +1,34 @@
+{
+  "name": "apohara-probant-verify",
+  "displayName": "Apohara PROBANT — Cross-AI Verifier",
+  "description": "Verify AI-generated code with a 9-vendor adversarial ensemble before merging.",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "publisher": "SuarezPM",
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Linters", "Other"],
+  "activationEvents": ["onCommand:apohara-probant.verifyPR", "onCommand:apohara-probant.verifySelection"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {"command": "apohara-probant.verifyPR", "title": "Apohara: Verify Current Diff"},
+      {"command": "apohara-probant.verifySelection", "title": "Apohara: Verify Selection"}
+    ],
+    "configuration": {
+      "title": "Apohara PROBANT",
+      "properties": {
+        "apohara.apiUrl": {"type": "string", "default": "https://api.apohara.dev", "description": "Apohara PROBANT backend URL"},
+        "apohara.geminiApiKey": {"type": "string", "default": "", "description": "Your Gemini API key (BYOK). Get one at https://aistudio.google.com/apikey"}
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}

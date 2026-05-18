@@ -1,7 +1,7 @@
 [project]
-name = "apohara-inti-backend"
-version = "0.1.0"
-description = "Backend FastAPI service for Apohara Inti — Gemini writer + 9-vendor adversarial ensemble + INV-15 memory isolation"
+name = "apohara-probant-backend"
+version = "0.2.0"
+description = "Backend FastAPI service for Apohara PROBANT — Gemini writer + 9-vendor adversarial ensemble + INV-15 memory isolation + Veea LobsterTrap DPI"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",
@@ -25,4 +25,8 @@ py-modules = [
   "envelope",
   "verdict_vault",
   "judge_gates",
+  "rule_of_two",
+  "capability_fingerprint",
+  "mcp_server",
 ]
+packages = ["billing", "enterprise"]

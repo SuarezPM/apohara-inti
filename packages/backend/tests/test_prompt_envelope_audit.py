@@ -101,3 +101,35 @@ def test_skip_venv_and_pycache(tmp_path: Path) -> None:
     )
     rc, _, _ = _run(str(tmp_path))
     assert rc == 0
+
+
+def test_subscript_string_constant_flagged(tmp_path: Path) -> None:
+    f = tmp_path / "subscript_bad.py"
+    f.write_text(
+        "def build(data):\n"
+        "    return f\"Audit: {data['task_input']}\"\n"
+    )
+    rc, _, err = _run(str(f))
+    assert rc == 1
+    assert "untrusted attr 'task_input'" in err
+    assert "subscript_bad.py:2" in err
+
+
+def test_subscript_variable_index_not_flagged(tmp_path: Path) -> None:
+    f = tmp_path / "subscript_var.py"
+    f.write_text(
+        "def build(data, key):\n"
+        '    return f"Value: {data[key]}"\n'
+    )
+    rc, _, _ = _run(str(f))
+    assert rc == 0
+
+
+def test_subscript_non_untrusted_key_not_flagged(tmp_path: Path) -> None:
+    f = tmp_path / "subscript_safe.py"
+    f.write_text(
+        "def build(data):\n"
+        "    return f\"Value: {data['safe_key']}\"\n"
+    )
+    rc, _, _ = _run(str(f))
+    assert rc == 0

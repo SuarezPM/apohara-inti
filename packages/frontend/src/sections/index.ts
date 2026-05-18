@@ -7,3 +7,4 @@ export { Comparison } from "./Comparison";
 export { WhyThisMatters } from "./WhyThisMatters";
 export { CTAFinal } from "./CTAFinal";
 export { Footer } from "./Footer";
+export { Dashboard } from "./Dashboard";

@@ -1,0 +1,79 @@
+{
+  "sprint": "P1+P3-Day7-live-smoke",
+  "timestamp_utc": "2026-05-17T15:33:04+00:00",
+  "hardware": "Vultr vc2-1c-2gb / Ubuntu 24.04 / 149.28.56.91 / hostname inti-demo",
+  "url_base": "https://149.28.56.91.nip.io",
+  "commit_deployed": "ab4a6a2",
+  "probes": {
+    "health_get": "{\"status\":\"ok\",\"deps\":{\"aegis\":\"loaded\",\"contextforge\":\"loaded\"},\"version\":\"0.1.0\"}",
+    "demo_verify_post_unconfigured": "{\"detail\":\"demo mode not configured\"}",
+    "verify_post_byok_real_gemini": {
+      "verdict": "verified",
+      "attackers": [
+        {
+          "vendor": "openrouter",
+          "model": "anthropic/claude-opus-4.7-fast",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "gpt-5.5-pro",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "deepseek-v4-flash-free",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "minimax-m2.7",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "moonshotai/kimi-k2.6",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "z-ai/glm-5.1",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "qwen3.6-plus",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "nemotron-3-super-free",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "big-pickle",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        }
+      ],
+      "memory_isolation": {
+        "inv15_enforced": true,
+        "contextforge_audit_id": "28a8d628-5765-40bf-92a9-334e11d0601b"
+      },
+      "signed_hash": "0c0de730890fe2cbad053a40186fe111c0b0c911ec0cbfbfe8d5614c3b13dd4c",
+      "latency_ms": 14663.507,
+      "cost_estimate_usd": 0.0,
+      "cost_capped": false
+    }
+  },
+  "notes": "BYOK key from ~/.config/environment.d/98-apohara-aegis-keys.conf (Pablo paid Gemini key). DEMO_GEMINI_KEY left UNSET on droplet so /v1/demo_verify returns 503 (Pablo will paste dedicated key later). LOBSTERTRAP_URL UNSET intentional (LT container not deployed; honest disabled mode)."
+}

@@ -59,11 +59,22 @@ class Violation:
 
 
 def _expr_name(expr: ast.expr) -> str | None:
-    """Return bare name or final ``.attr`` if expression resolves to one."""
+    """Return bare name or final ``.attr`` if expression resolves to one.
+
+    Also handles ``ast.Subscript`` with a string-constant slice, e.g.
+    ``data['task_input']``, returning the constant value when it is in
+    :data:`UNTRUSTED_ATTRS`.
+    """
     if isinstance(expr, ast.Name):
         return expr.id
     if isinstance(expr, ast.Attribute):
         return expr.attr
+    if isinstance(expr, ast.Subscript):
+        slc = expr.slice
+        if isinstance(slc, ast.Constant) and isinstance(slc.value, str):
+            key = slc.value
+            if key in UNTRUSTED_ATTRS:
+                return key
     return None
 
 

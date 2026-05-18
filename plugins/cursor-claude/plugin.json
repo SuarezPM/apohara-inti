@@ -1,0 +1,12 @@
+{
+  "name": "apohara-probant-verify",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "Cross-AI code verification with 9-vendor adversarial ensemble.",
+  "homepage": "https://www.apohara.dev",
+  "repository": "https://github.com/SuarezPM/apohara-probant",
+  "commands": [
+    {"name": "apohara-probant.verifyPR", "title": "Verify Current Diff"},
+    {"name": "apohara-probant.verifySelection", "title": "Verify Selection"}
+  ]
+}

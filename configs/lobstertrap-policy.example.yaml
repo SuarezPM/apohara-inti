@@ -83,7 +83,35 @@ ingress_rules:
         match_type: boolean
         value: true
 
-egress_rules: []
+egress_rules:
+  - name: block_credential_leak
+    description: "Model output contains credentials — block exfiltration."
+    priority: 200
+    action: DENY
+    deny_message: "[LOBSTERTRAP-EGRESS] Blocked: model attempted to leak credentials."
+    conditions:
+      - field: contains_credentials
+        match_type: boolean
+        value: true
+
+  - name: block_exfiltration_patterns
+    description: "Model output contains known exfiltration payload patterns."
+    priority: 190
+    action: DENY
+    deny_message: "[LOBSTERTRAP-EGRESS] Blocked: model output matches exfiltration pattern."
+    conditions:
+      - field: contains_exfiltration
+        match_type: boolean
+        value: true
+
+  - name: log_sensitive_paths
+    description: "Model output contains sensitive filesystem paths — log for audit."
+    priority: 80
+    action: LOG
+    conditions:
+      - field: contains_sensitive_paths
+        match_type: boolean
+        value: true
 
 rate_limits:
   requests_per_minute: 120

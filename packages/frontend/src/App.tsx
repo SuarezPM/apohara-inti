@@ -8,9 +8,25 @@ import {
   WhyThisMatters,
   CTAFinal,
   Footer,
+  Dashboard,
 } from "@/sections";
 
+const isDashboard =
+  typeof window !== "undefined" && window.location.pathname === "/dashboard";
+
 export default function App() {
+  if (isDashboard) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main>
+          <Dashboard />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <a

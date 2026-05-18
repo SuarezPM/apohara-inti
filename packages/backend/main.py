@@ -20,6 +20,7 @@ Verdict aggregation (per US-006 acceptance criteria):
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import time
 import uuid
@@ -29,7 +30,7 @@ from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 # ---------------------------------------------------------------------------
@@ -64,7 +65,10 @@ except Exception as exc:  # noqa: BLE001
 
 from envelope import TaintedString, build_envelope
 from judge_gates import annotate_hedging
-from lobstertrap_client import check_prompt_with_lobstertrap
+from lobstertrap_client import (
+    check_prompt_with_lobstertrap,
+    check_response_with_lobstertrap,
+)
 from rate_limiter import DailyRateLimiter
 from verdict_vault import VerdictVault, ZERO_HASH as _VAULT_ZERO_HASH
 
@@ -179,10 +183,10 @@ if _extra_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
-    # Allow Vercel preview deploys (apohara-inti-<hash>.vercel.app) without
-    # listing every hash. Regex covers .vercel.app + .netlify.app
-    # subdomains starting with "apohara-inti".
-    allow_origin_regex=r"^https://apohara-inti(-[a-z0-9-]+)?\.(vercel|netlify)\.app$",
+    # Allow Vercel preview deploys for both legacy apohara-inti and renamed
+    # apohara-probant (12-month GitHub redirect window) without listing every
+    # hash. Regex covers .vercel.app + .netlify.app subdomains.
+    allow_origin_regex=r"^https://apohara-(inti|probant)(-[a-z0-9-]+)?\.(vercel|netlify)\.app$",
     allow_credentials=False,  # BYOK is body-only; no cookies in flight
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
@@ -517,6 +521,41 @@ async def verify(req: VerifyRequest) -> VerifyResponse:
             detail=f"Gemini upstream error: {type(exc).__name__}: {exc!s}",
         ) from exc
 
+    # ---- 1.5. LobsterTrap egress DPI (active when LOBSTERTRAP_CHECK_EGRESS=1) --
+    if os.environ.get("LOBSTERTRAP_CHECK_EGRESS", "").strip() == "1":
+        lt_bin = os.environ.get("LOBSTERTRAP_BIN", "").strip() or None
+        egress_check = await check_response_with_lobstertrap(gemini_output, lt_bin)
+        if not egress_check["allowed"]:
+            egress_audit_id = str(uuid.uuid4())
+            egress_latency_ms = (time.perf_counter() - t0) * 1000.0
+            egress_prev_hash = _read_last_hash()
+            egress_entry = {
+                "verdict": "blocked",
+                "attackers": [],
+                "memory_isolation": {
+                    "inv15_enforced": True,
+                    "contextforge_audit_id": egress_audit_id,
+                },
+                "egress_check": egress_check,
+                "latency_ms": round(egress_latency_ms, 3),
+                "cost_estimate_usd": 0.0,
+                "cost_capped": False,
+                "ts": time.time(),
+            }
+            egress_signed = _append_ledger(egress_entry, egress_prev_hash)
+            return VerifyResponse(
+                verdict="blocked",
+                attackers=[],
+                memory_isolation=MemoryIsolationReport(
+                    inv15_enforced=True,
+                    contextforge_audit_id=egress_audit_id,
+                ),
+                signed_hash=egress_signed,
+                latency_ms=round(egress_latency_ms, 3),
+                cost_estimate_usd=0.0,
+                cost_capped=False,
+            )
+
     # ---- 2. Build adversarial prompt ---------------------------------------
     prompt = _build_adversarial_prompt(req.task_input, gemini_output)
 
@@ -661,3 +700,364 @@ def audit(verdict_id: str) -> JSONResponse:
     if entry is None:
         raise HTTPException(status_code=404, detail=f"no ledger entry for {verdict_id}")
     return JSONResponse(status_code=200, content=entry)
+
+
+# ---------------------------------------------------------------------------
+# /v1/audit/recent
+# ---------------------------------------------------------------------------
+
+
+@app.get("/v1/audit/recent")
+def audit_recent(limit: int = 20, admin_key: str = "") -> JSONResponse:
+    """Return last N ledger entries, newest first. Admin-gated via APOHARA_ADMIN_KEY.
+
+    When ``APOHARA_ADMIN_KEY`` is set in the environment, callers must supply a
+    matching ``admin_key`` query parameter. If the env var is unset the endpoint
+    is open (useful for local dev / self-hosted installs with no key).
+    """
+    required_key = os.environ.get("APOHARA_ADMIN_KEY", "").strip()
+    if required_key and admin_key != required_key:
+        raise HTTPException(status_code=401, detail="admin key required")
+
+    if not LEDGER_PATH.exists():
+        return JSONResponse(
+            status_code=200,
+            content={"entries": [], "limit": limit, "total_returned": 0},
+        )
+
+    entries: list[Any] = []
+    with LEDGER_PATH.open("r", encoding="utf-8") as fh:
+        all_lines = [line.strip() for line in fh if line.strip()]
+
+    for line in all_lines[-limit:][::-1]:  # newest first
+        try:
+            entries.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+
+    return JSONResponse(
+        status_code=200,
+        content={"entries": entries, "limit": limit, "total_returned": len(entries)},
+    )
+
+
+# ---------------------------------------------------------------------------
+# /v1/verify_stream  — SSE streaming variant of /v1/verify (US-T2-D)
+# ---------------------------------------------------------------------------
+
+
+def _sse_event(event: str, data: Any) -> str:
+    """Format a single SSE event frame."""
+    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
+
+@app.post("/v1/verify_stream")
+async def verify_stream(req: VerifyRequest) -> StreamingResponse:
+    """SSE-streaming variant of /v1/verify.
+
+    Emits one SSE event per vendor as they complete + a final aggregate.
+    Event schema:
+      event: blocked_at_dpi    data: {"reason": ..., "source": ...}
+      event: gemini_complete   data: {"model": "gemini-2.5-pro"}
+      event: vendor_started    data: {"vendor": ..., "model": ...}
+      event: vendor_completed  data: {"vendor": ..., "model": ..., "found_issue": ..., "reasoning": ...}
+      event: all_done          data: {"verdict": ..., "attackers": [...], "memory_isolation": {...},
+                                      "signed_hash": ..., "latency_ms": ...,
+                                      "cost_estimate_usd": ..., "cost_capped": ...}
+    """
+    if _aegis_err is not None or _ctx_err is not None:
+        raise HTTPException(
+            status_code=503,
+            detail=f"deps not loaded: aegis={_aegis_err!s}; "
+                   f"contextforge={_ctx_err!s}",
+        )
+
+    async def event_gen():  # noqa: C901
+        t0 = time.perf_counter()
+
+        # ---- 0.5 LobsterTrap DPI pre-check ---------------------------------
+        lt_url = (os.environ.get("LOBSTERTRAP_URL") or "").strip() or None
+        dpi_check = await check_prompt_with_lobstertrap(req.task_input, lt_url)
+        if not dpi_check["allowed"]:
+            dpi_audit_id = str(uuid.uuid4())
+            dpi_latency_ms = (time.perf_counter() - t0) * 1000.0
+            dpi_prev_hash = _read_last_hash()
+            dpi_entry = {
+                "verdict": "blocked",
+                "attackers": [],
+                "memory_isolation": {
+                    "inv15_enforced": True,
+                    "contextforge_audit_id": dpi_audit_id,
+                },
+                "dpi_check": dpi_check,
+                "latency_ms": round(dpi_latency_ms, 3),
+                "cost_estimate_usd": 0.0,
+                "cost_capped": False,
+                "ts": time.time(),
+            }
+            dpi_signed = _append_ledger(dpi_entry, dpi_prev_hash)
+            yield _sse_event("blocked_at_dpi", {
+                "reason": dpi_check.get("reason", ""),
+                "source": dpi_check.get("source", ""),
+            })
+            yield _sse_event("all_done", {
+                "verdict": "blocked",
+                "attackers": [],
+                "memory_isolation": {
+                    "inv15_enforced": True,
+                    "contextforge_audit_id": dpi_audit_id,
+                },
+                "signed_hash": dpi_signed,
+                "latency_ms": round(dpi_latency_ms, 3),
+                "cost_estimate_usd": 0.0,
+                "cost_capped": False,
+            })
+            return
+
+        # ---- 1. Gemini writer pass -----------------------------------------
+        try:
+            gemini_output = await asyncio.to_thread(
+                _call_gemini, req.gemini_api_key, req.task_input
+            )
+        except _GeminiAuthError as exc:
+            # Can't raise HTTPException inside a generator; yield an error event
+            # and terminate.  Callers should check for event type "error".
+            yield _sse_event("error", {
+                "code": 401,
+                "detail": f"Gemini API key rejected: {exc!s}. "
+                          "Check your BYOK token at https://aistudio.google.com/apikey",
+            })
+            return
+        except Exception as exc:  # noqa: BLE001
+            yield _sse_event("error", {
+                "code": 502,
+                "detail": f"Gemini upstream error: {type(exc).__name__}: {exc!s}",
+            })
+            return
+
+        yield _sse_event("gemini_complete", {"model": GEMINI_MODEL})
+
+        # ---- 1.5 LobsterTrap egress DPI ------------------------------------
+        if os.environ.get("LOBSTERTRAP_CHECK_EGRESS", "").strip() == "1":
+            lt_bin = os.environ.get("LOBSTERTRAP_BIN", "").strip() or None
+            egress_check = await check_response_with_lobstertrap(gemini_output, lt_bin)
+            if not egress_check["allowed"]:
+                egress_audit_id = str(uuid.uuid4())
+                egress_latency_ms = (time.perf_counter() - t0) * 1000.0
+                egress_entry = {
+                    "verdict": "blocked",
+                    "attackers": [],
+                    "memory_isolation": {
+                        "inv15_enforced": True,
+                        "contextforge_audit_id": egress_audit_id,
+                    },
+                    "egress_check": egress_check,
+                    "latency_ms": round(egress_latency_ms, 3),
+                    "cost_estimate_usd": 0.0,
+                    "cost_capped": False,
+                    "ts": time.time(),
+                }
+                egress_signed = _append_ledger(egress_entry, _read_last_hash())
+                yield _sse_event("blocked_at_dpi", {
+                    "reason": egress_check.get("reason", "egress blocked"),
+                    "source": egress_check.get("source", "egress"),
+                })
+                yield _sse_event("all_done", {
+                    "verdict": "blocked",
+                    "attackers": [],
+                    "memory_isolation": {
+                        "inv15_enforced": True,
+                        "contextforge_audit_id": egress_audit_id,
+                    },
+                    "signed_hash": egress_signed,
+                    "latency_ms": round(egress_latency_ms, 3),
+                    "cost_estimate_usd": 0.0,
+                    "cost_capped": False,
+                })
+                return
+
+        # ---- 2. Build adversarial prompt ------------------------------------
+        prompt = _build_adversarial_prompt(req.task_input, gemini_output)
+
+        # ---- 3. Run attackers with per-vendor SSE events --------------------
+        all_adapters = make_default_adapters()  # type: ignore[misc]
+        attackers = _filter_gemini_seat(all_adapters)
+
+        base_cost = sum(getattr(ad, "cumulative_cost_usd", 0.0) for ad in attackers)
+
+        async def _run_one(ad: Any) -> tuple[Any, "JudgeVerdict"]:
+            """Run a single adapter and return (adapter, verdict)."""
+            live_cost = (
+                sum(getattr(a, "cumulative_cost_usd", 0.0) for a in attackers)
+                - base_cost
+            )
+            if live_cost >= COST_CEILING_USD:
+                return ad, JudgeVerdict(
+                    is_harmful=False,
+                    confidence=0.0,
+                    category="harassment",
+                    reason="per-call cost ceiling reached",
+                    model=getattr(ad, "model", "unknown"),
+                    vendor=getattr(ad, "vendor", "unknown"),
+                    latency_ms=0.0,
+                    error=f"cost_capped_per_call_usd={COST_CEILING_USD}",
+                    path="out_of_budget",
+                )
+            try:
+                verdict = await ad.evaluate(prompt)
+            except Exception as exc:  # noqa: BLE001
+                verdict = JudgeVerdict(
+                    is_harmful=False,
+                    confidence=0.0,
+                    category="harassment",
+                    reason="adapter raised",
+                    model=getattr(ad, "model", "unknown"),
+                    vendor=getattr(ad, "vendor", "unknown"),
+                    latency_ms=0.0,
+                    error=f"transport: {exc!s}"[:160],
+                    path="unavailable",
+                )
+            return ad, verdict
+
+        # Emit vendor_started for every attacker up-front so UI can show spinners.
+        for ad in attackers:
+            yield _sse_event("vendor_started", {
+                "vendor": getattr(ad, "vendor", "unknown"),
+                "model": getattr(ad, "model", "unknown"),
+            })
+
+        # Fire all as concurrent tasks; yield vendor_completed as each resolves.
+        verdicts_ordered: list["JudgeVerdict"] = []
+        tasks = [asyncio.ensure_future(_run_one(ad)) for ad in attackers]
+
+        # asyncio.as_completed yields futures in completion order.
+        for fut in asyncio.as_completed(tasks):
+            ad, v = await fut
+            verdicts_ordered.append(v)
+            active = v.path in ("primary", "fallback")
+            found_issue = bool(v.is_harmful) if active else False
+            raw_reason = v.reason if active else (
+                f"unavailable ({v.path}): {v.error or 'no detail'}"
+            )
+            truncated = raw_reason[:500]
+            final_reason = annotate_hedging(truncated) if active else truncated
+            yield _sse_event("vendor_completed", {
+                "vendor": v.vendor,
+                "model": v.model,
+                "found_issue": found_issue,
+                "reasoning": final_reason,
+            })
+
+        # ---- 4. INV-15 gate ------------------------------------------------
+        gate = JCRSafetyGate()  # type: ignore[misc]
+        audit_id = str(uuid.uuid4())
+        inv15_enforced_all = True
+        for _ in verdicts_ordered:
+            decision = gate.gate_decision(
+                agent_role="critic",
+                candidate_count=len(attackers),
+                reuse_rate=0.0,
+                layout_shuffled=True,
+            )
+            if not decision.use_dense:
+                inv15_enforced_all = False
+
+        # ---- 5. Build full attacker reports + verdict ----------------------
+        # Re-build reports in original adapter order to keep consistent ordering
+        # in the all_done payload.  We need verdicts keyed by adapter identity.
+        # Since as_completed reorders, collect by completing task result above
+        # and rebuild from adapter order using a separate gather on the already-
+        # resolved tasks (instant since they're done).
+        final_verdicts: list["JudgeVerdict"] = await asyncio.gather(
+            *[t for t in tasks]
+        )
+        # tasks already done; gather returns immediately.
+        # Each element is (ad, verdict) because _run_one returns a tuple.
+        reports: list[AttackerReport] = []
+        for _ad, v in final_verdicts:  # type: ignore[misc]
+            active = v.path in ("primary", "fallback")
+            found_issue = bool(v.is_harmful) if active else False
+            raw_reason = v.reason if active else (
+                f"unavailable ({v.path}): {v.error or 'no detail'}"
+            )
+            truncated = raw_reason[:500]
+            final_reason = annotate_hedging(truncated) if active else truncated
+            reports.append(AttackerReport(
+                vendor=v.vendor,
+                model=v.model,
+                found_issue=found_issue,
+                reasoning=final_reason,
+            ))
+
+        verdict_str = _aggregate_verdict(reports)
+        delta_cost = (
+            sum(getattr(ad, "cumulative_cost_usd", 0.0) for ad in attackers)
+            - base_cost
+        )
+        cost_capped = delta_cost >= COST_CEILING_USD
+        latency_ms = (time.perf_counter() - t0) * 1000.0
+
+        # ---- 6. Sign + ledger append ---------------------------------------
+        prev_hash = _read_last_hash()
+        entry = {
+            "verdict": verdict_str,
+            "attackers": [r.model_dump() for r in reports],
+            "memory_isolation": {
+                "inv15_enforced": inv15_enforced_all,
+                "contextforge_audit_id": audit_id,
+            },
+            "dpi_check": dpi_check,
+            "latency_ms": round(latency_ms, 3),
+            "cost_estimate_usd": round(delta_cost, 6),
+            "cost_capped": cost_capped,
+            "ts": time.time(),
+        }
+        signed_hash = _append_ledger(entry, prev_hash)
+
+        yield _sse_event("all_done", {
+            "verdict": verdict_str,
+            "attackers": [r.model_dump() for r in reports],
+            "memory_isolation": {
+                "inv15_enforced": inv15_enforced_all,
+                "contextforge_audit_id": audit_id,
+            },
+            "signed_hash": signed_hash,
+            "latency_ms": round(latency_ms, 3),
+            "cost_estimate_usd": round(delta_cost, 6),
+            "cost_capped": cost_capped,
+        })
+
+    return StreamingResponse(event_gen(), media_type="text/event-stream")
+
+
+# ---------------------------------------------------------------------------
+# Enterprise mode endpoints — gated by APOHARA_ENTERPRISE_MODE=1
+# ---------------------------------------------------------------------------
+
+if os.environ.get("APOHARA_ENTERPRISE_MODE", "").lower() in ("1", "true"):
+    from enterprise import audit_api as _audit_api
+
+    @app.get("/v1/admin/audit")
+    def admin_audit(
+        since: Optional[str] = None,
+        until: Optional[str] = None,
+        verdict_filter: Optional[str] = None,
+        tenant_id: Optional[str] = None,
+        cursor: Optional[str] = None,
+        limit: int = 50,
+        # auth: JWT verification omitted in PoC — production would use Depends()
+        admin_role: str = "admin",
+        admin_org_id: Optional[str] = None,
+    ) -> JSONResponse:
+        result = _audit_api.query_audit_log(
+            LEDGER_PATH,
+            since=since,
+            until=until,
+            verdict_filter=verdict_filter,
+            tenant_id=tenant_id,
+            cursor=cursor,
+            limit=limit,
+            role=admin_role,
+            requester_org_id=admin_org_id,
+        )
+        return JSONResponse(status_code=200, content=result)

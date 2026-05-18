@@ -210,3 +210,39 @@ async def check_prompt_with_lobstertrap(
         "latency_ms": latency_ms,
         "source": "unreachable-fallback",
     }
+
+
+async def check_response_with_lobstertrap(
+    text: str,
+    lt_bin: Optional[str],
+) -> dict:
+    """Forward model output ``text`` to LobsterTrap for egress DPI inspection.
+
+    Symmetric to ``check_prompt_with_lobstertrap`` but operates on model
+    output rather than user input. LobsterTrap's ``inspect`` command runs
+    the full policy including egress_rules — egress rules fire on
+    ``contains_credentials``, ``contains_exfiltration``, and
+    ``contains_sensitive_paths`` fields that LT detects in the text.
+
+    Returns a dict ``{allowed, reason, latency_ms, source}``.
+
+    Code path selection:
+    - LOBSTERTRAP_BIN env OR ``lt_bin`` argument set → subprocess mode
+    - Neither set → disabled, fail-open (LOBSTERTRAP_CHECK_EGRESS guard
+      is handled by the caller; this function is always fail-open when
+      the binary is unavailable).
+    """
+    bin_path = lt_bin or os.environ.get("LOBSTERTRAP_BIN", "")
+    if not bin_path:
+        return {
+            "allowed": True,
+            "reason": "LOBSTERTRAP_BIN not set",
+            "latency_ms": 0.0,
+            "source": "disabled",
+        }
+
+    policy_path = os.environ.get("LOBSTERTRAP_POLICY", LOBSTERTRAP_POLICY_PATH)
+    result = await _check_via_subprocess(text, bin_path, policy_path)
+    # Tag the source so callers can distinguish ingress vs egress checks.
+    result["direction"] = "egress"
+    return result

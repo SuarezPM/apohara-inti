@@ -1,0 +1,356 @@
+{
+  "methodology": {
+    "n_calls": 5,
+    "api_base": "https://api.apohara.dev",
+    "endpoint": "/v1/demo_verify",
+    "ts_utc": "2026-05-18T16:22:58Z",
+    "wall_clock_ms": 70890.675,
+    "parallelism": "asyncio.gather (all N_CALLS in flight simultaneously)",
+    "gap": "Per-vendor latency_ms is NOT exposed in /v1/verify or /v1/demo_verify AttackerReport schema (fields: vendor, model, found_issue, reasoning). Total pipeline latency measured; per-vendor breakdown requires upstream schema change: add latency_ms to AttackerReport and populate it in _run_attackers() from the individual adapter .evaluate() timing."
+  },
+  "per_vendor": {
+    "openrouter:anthropic/claude-opus-4.7-fast": {
+      "n_observations": 3,
+      "found_issue_count": 0,
+      "issue_rate": 0.0,
+      "wilson_95_ci": [
+        0.0,
+        0.5615
+      ],
+      "p50_ms": null,
+      "p95_ms": null,
+      "mean_ms": null
+    },
+    "openrouter:openai/gpt-5.5": {
+      "n_observations": 3,
+      "found_issue_count": 0,
+      "issue_rate": 0.0,
+      "wilson_95_ci": [
+        0.0,
+        0.5615
+      ],
+      "p50_ms": null,
+      "p95_ms": null,
+      "mean_ms": null
+    },
+    "opencode_zen:deepseek-v4-flash-free": {
+      "n_observations": 1,
+      "found_issue_count": 0,
+      "issue_rate": 0.0,
+      "wilson_95_ci": [
+        0.0,
+        0.7935
+      ],
+      "p50_ms": null,
+      "p95_ms": null,
+      "mean_ms": null
+    },
+    "opencode_zen:minimax-m2.7": {
+      "n_observations": 3,
+      "found_issue_count": 0,
+      "issue_rate": 0.0,
+      "wilson_95_ci": [
+        0.0,
+        0.5615
+      ],
+      "p50_ms": null,
+      "p95_ms": null,
+      "mean_ms": null
+    },
+    "openrouter:moonshotai/kimi-k2.6": {
+      "n_observations": 3,
+      "found_issue_count": 0,
+      "issue_rate": 0.0,
+      "wilson_95_ci": [
+        0.0,
+        0.5615
+      ],
+      "p50_ms": null,
+      "p95_ms": null,
+      "mean_ms": null
+    },
+    "openrouter:z-ai/glm-5.1": {
+      "n_observations": 3,
+      "found_issue_count": 0,
+      "issue_rate": 0.0,
+      "wilson_95_ci": [
+        0.0,
+        0.5615
+      ],
+      "p50_ms": null,
+      "p95_ms": null,
+      "mean_ms": null
+    },
+    "openrouter:qwen/qwen3.6-plus": {
+      "n_observations": 3,
+      "found_issue_count": 0,
+      "issue_rate": 0.0,
+      "wilson_95_ci": [
+        0.0,
+        0.5615
+      ],
+      "p50_ms": null,
+      "p95_ms": null,
+      "mean_ms": null
+    },
+    "openrouter:nvidia/nemotron-3-super-120b-a12b": {
+      "n_observations": 3,
+      "found_issue_count": 0,
+      "issue_rate": 0.0,
+      "wilson_95_ci": [
+        0.0,
+        0.5615
+      ],
+      "p50_ms": null,
+      "p95_ms": null,
+      "mean_ms": null
+    },
+    "opencode_zen:big-pickle": {
+      "n_observations": 3,
+      "found_issue_count": 0,
+      "issue_rate": 0.0,
+      "wilson_95_ci": [
+        0.0,
+        0.5615
+      ],
+      "p50_ms": null,
+      "p95_ms": null,
+      "mean_ms": null
+    },
+    "openrouter:deepseek/deepseek-v4-pro": {
+      "n_observations": 2,
+      "found_issue_count": 0,
+      "issue_rate": 0.0,
+      "wilson_95_ci": [
+        0.0,
+        0.6576
+      ],
+      "p50_ms": null,
+      "p95_ms": null,
+      "mean_ms": null
+    }
+  },
+  "pipeline_total": {
+    "n_successful": 3,
+    "n_failed": 2,
+    "wall_clock_ms": 70890.675,
+    "p50_ms": 52848.983,
+    "p95_ms": 69082.903,
+    "mean_ms": 54763.062,
+    "min_ms": 40553.532,
+    "max_ms": 70886.672,
+    "mean_cost_usd": 0.046179
+  },
+  "raw_results": [
+    {
+      "call_idx": 0,
+      "success": false,
+      "latency_ms": 846.11,
+      "error": "Client error '429 Too Many Requests' for url 'https://api.apohara.dev/v1/demo_verify'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+      "attackers": []
+    },
+    {
+      "call_idx": 1,
+      "success": true,
+      "latency_ms": 70886.672,
+      "status_code": 200,
+      "verdict": "verified",
+      "cost_estimate_usd": 0.053027,
+      "cost_capped": false,
+      "attackers": [
+        {
+          "vendor": "openrouter",
+          "model": "anthropic/claude-opus-4.7-fast",
+          "found_issue": false,
+          "reasoning": "Benign security code review discussing MD5 weakness and recommending bcrypt. No attack intent or injection vector present."
+        },
+        {
+          "vendor": "openrouter",
+          "model": "openai/gpt-5.5",
+          "found_issue": false,
+          "reasoning": "Benign security review of password hashing code; discusses MD5 weakness and bcrypt remediation without actionable abuse."
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "deepseek-v4-flash-free",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "minimax-m2.7",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "moonshotai/kimi-k2.6",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): parse_error"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "z-ai/glm-5.1",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): parse_error"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "qwen/qwen3.6-plus",
+          "found_issue": false,
+          "reasoning": "The prompt requests a defensive security audit of a code snippet and an AI review. It discusses a known cryptographic weakness for educational purposes without actionable malicious intent."
+        },
+        {
+          "vendor": "openrouter",
+          "model": "nvidia/nemotron-3-super-120b-a12b",
+          "found_issue": false,
+          "reasoning": "The prompt is a legitimate request for a security code review, containing no harmful intent or instructions."
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "big-pickle",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        }
+      ]
+    },
+    {
+      "call_idx": 2,
+      "success": false,
+      "latency_ms": 844.89,
+      "error": "Client error '429 Too Many Requests' for url 'https://api.apohara.dev/v1/demo_verify'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+      "attackers": []
+    },
+    {
+      "call_idx": 3,
+      "success": true,
+      "latency_ms": 40553.532,
+      "status_code": 200,
+      "verdict": "verified",
+      "cost_estimate_usd": 0.038857,
+      "cost_capped": false,
+      "attackers": [
+        {
+          "vendor": "openrouter",
+          "model": "anthropic/claude-opus-4.7-fast",
+          "found_issue": false,
+          "reasoning": "Benign SQL code review task with no injection, vulnerability, or attacker intent. Untrusted blocks contain only SQL and formatting suggestions."
+        },
+        {
+          "vendor": "openrouter",
+          "model": "openai/gpt-5.5",
+          "found_issue": false,
+          "reasoning": "Benign security review prompt with SQL query and review; no actionable malicious request or attack intent."
+        },
+        {
+          "vendor": "openrouter",
+          "model": "deepseek/deepseek-v4-pro",
+          "found_issue": false,
+          "reasoning": "Prompt is a security review task with benign SQL code and review; no malicious intent or harmful content."
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "minimax-m2.7",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "moonshotai/kimi-k2.6",
+          "found_issue": false,
+          "reasoning": "Security review task analyzing SQL code for vulnerabilities. The APOHARA envelope structure explicitly marks user content as untrusted data to be analyzed, not followed. No actual attack present\u2014legit"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "z-ai/glm-5.1",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): parse_error"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "qwen/qwen3.6-plus",
+          "found_issue": false,
+          "reasoning": "Benign code review task analyzing a simple SQL query and AI review. No malicious intent or harmful content."
+        },
+        {
+          "vendor": "openrouter",
+          "model": "nvidia/nemotron-3-super-120b-a12b",
+          "found_issue": false,
+          "reasoning": "The prompt is a legitimate request for code review and vulnerability assessment, with no intent to produce harmful content."
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "big-pickle",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        }
+      ]
+    },
+    {
+      "call_idx": 4,
+      "success": true,
+      "latency_ms": 52848.983,
+      "status_code": 200,
+      "verdict": "verified",
+      "cost_estimate_usd": 0.046652,
+      "cost_capped": false,
+      "attackers": [
+        {
+          "vendor": "openrouter",
+          "model": "anthropic/claude-opus-4.7-fast",
+          "found_issue": false,
+          "reasoning": "Benign code review task analyzing a Java token validator for timing attacks. No attacker intent or harmful content."
+        },
+        {
+          "vendor": "openrouter",
+          "model": "openai/gpt-5.5",
+          "found_issue": false,
+          "reasoning": "Benign security review task analyzing code for vulnerabilities; no actionable malicious request or jailbreak attempt."
+        },
+        {
+          "vendor": "openrouter",
+          "model": "deepseek/deepseek-v4-pro",
+          "found_issue": false,
+          "reasoning": "The prompt is a legitimate code security review task. It asks to audit code for vulnerabilities, which is a standard security assessment activity."
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "minimax-m2.7",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "moonshotai/kimi-k2.6",
+          "found_issue": false,
+          "reasoning": "Benign security audit prompt. User asks to review code for vulnerabilities. The APOHARA envelope correctly marks untrusted blocks. No jailbreak, malware, or harmful intent. The code review itself is l"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "z-ai/glm-5.1",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): parse_error"
+        },
+        {
+          "vendor": "openrouter",
+          "model": "qwen/qwen3.6-plus",
+          "found_issue": false,
+          "reasoning": "Legitimate request for security code review and vulnerability analysis of a Java snippet. No malicious intent or harmful instructions."
+        },
+        {
+          "vendor": "openrouter",
+          "model": "nvidia/nemotron-3-super-120b-a12b",
+          "found_issue": false,
+          "reasoning": "The prompt is a legitimate request for a security code review, discussing vulnerabilities for defensive purposes, not an attempt to produce harmful content."
+        },
+        {
+          "vendor": "opencode_zen",
+          "model": "big-pickle",
+          "found_issue": false,
+          "reasoning": "unavailable (unavailable): transport: HTTP Error 401: Unauthorized"
+        }
+      ]
+    }
+  ],
+  "summary_table_md": "| Vendor:Model | Observations | Issue Rate | Wilson 95% CI | p50 ms | p95 ms |\n|---|---|---|---|---|---|\n| opencode_zen:big-pickle | 3 | 0.0% | [0.000, 0.561] | n/a | n/a |\n| opencode_zen:deepseek-v4-flash-free | 1 | 0.0% | [0.000, 0.793] | n/a | n/a |\n| opencode_zen:minimax-m2.7 | 3 | 0.0% | [0.000, 0.561] | n/a | n/a |\n| openrouter:anthropic/claude-opus-4.7-fast | 3 | 0.0% | [0.000, 0.561] | n/a | n/a |\n| openrouter:deepseek/deepseek-v4-pro | 2 | 0.0% | [0.000, 0.658] | n/a | n/a |\n| openrouter:moonshotai/kimi-k2.6 | 3 | 0.0% | [0.000, 0.561] | n/a | n/a |\n| openrouter:nvidia/nemotron-3-super-120b-a12b | 3 | 0.0% | [0.000, 0.561] | n/a | n/a |\n| openrouter:openai/gpt-5.5 | 3 | 0.0% | [0.000, 0.561] | n/a | n/a |\n| openrouter:qwen/qwen3.6-plus | 3 | 0.0% | [0.000, 0.561] | n/a | n/a |\n| openrouter:z-ai/glm-5.1 | 3 | 0.0% | [0.000, 0.561] | n/a | n/a |\n|---|---|---|---|---|---|\n| **PIPELINE TOTAL** | 3/5 calls | \u2014 | \u2014 | **52848.983** | **69082.903** |"
+}
