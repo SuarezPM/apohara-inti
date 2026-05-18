@@ -1,7 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 
-const GITHUB_BASE = "https://github.com/SuarezPM/Apohara_Context_Forge/blob/main";
-const MYTHOS_STATUS_URL = "/v1/soar/mythos/status";
+// Matches the const BASE convention used across the SOAR dashboard sections
+// (IncidentsPage/LiveFeedPage/JudgeLayerPage/CompliancePage/Dashboard). Hardcoded
+// to the production droplet host because Vercel serves apohara.dev (origin) while
+// the API lives at api.apohara.dev (different origin) — relative paths would 404
+// on Vercel's SPA-rewrite catch-all.
+const API_BASE = "https://api.apohara.dev";
+const GITHUB_BASE = "https://github.com/SuarezPM/apohara-probant/blob/main";
+const MYTHOS_STATUS_URL = `${API_BASE}/v1/soar/mythos/status`;
 
 interface MythosStatus {
   enabled: boolean;

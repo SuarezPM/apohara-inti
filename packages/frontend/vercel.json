@@ -48,7 +48,7 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://149.28.56.91.nip.io",
+    "VITE_API_URL": "https://api.apohara.dev",
     "VITE_MOCK_API": "false"
   }
 }
