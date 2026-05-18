@@ -50,4 +50,4 @@ Both logs are committed in the `apohara-aegis` repository.
 - apohara-aegis commit [`0b2cf32`](https://github.com/SuarezPM/apohara-aegis/commit/0b2cf32) — US-004 probe (n=5)
 - apohara-aegis commit [`cd1f439`](https://github.com/SuarezPM/apohara-aegis/commit/cd1f439) — US-004 followup head-to-head (n=80)
 - `AUDIT.md` entries #20 / #21 — Granite Guardian 4 probe + followup measurement records
-- Judge FAQ — see [JUDGE-FAQ.md](../judge-faq.md) <!-- anchor: judge-faq — US-T-09 worker is generating this in parallel; link pending -->
+- Judge FAQ — see [`../submissions/JUDGE-FAQ.md`](../submissions/JUDGE-FAQ.md)

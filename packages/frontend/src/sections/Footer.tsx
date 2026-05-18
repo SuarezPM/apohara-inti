@@ -2,7 +2,7 @@ const COLS = [
   {
     title: "Products",
     links: [
-      { href: "https://github.com/SuarezPM/apohara-inti", label: "Apohara PROBANT" },
+      { href: "https://github.com/SuarezPM/apohara-probant", label: "Apohara PROBANT" },
       { href: "https://github.com/SuarezPM/Apohara_Context_Forge", label: "Context Forge" },
       { href: "https://github.com/SuarezPM/apohara-aegis", label: "Aegis" },
     ],
@@ -10,7 +10,7 @@ const COLS = [
   {
     title: "Developers",
     links: [
-      { href: "https://github.com/SuarezPM/apohara-inti#readme", label: "Documentation" },
+      { href: "https://github.com/SuarezPM/apohara-probant#readme", label: "Documentation" },
       { href: "https://doi.org/10.5281/zenodo.20114594", label: "Paper (DOI)" },
       { href: "https://api.apohara.dev/health", label: "API status" },
     ],
@@ -18,8 +18,8 @@ const COLS = [
   {
     title: "Legal",
     links: [
-      { href: "https://github.com/SuarezPM/apohara-inti/blob/main/LICENSE", label: "Apache-2.0" },
-      { href: "https://github.com/SuarezPM/apohara-inti#privacy", label: "Privacy" },
+      { href: "https://github.com/SuarezPM/apohara-probant/blob/main/LICENSE", label: "Apache-2.0" },
+      { href: "https://github.com/SuarezPM/apohara-probant#privacy", label: "Privacy" },
       { href: "mailto:dimensionequix@gmail.com", label: "Contact" },
     ],
   },

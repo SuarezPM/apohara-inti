@@ -12,21 +12,18 @@ enforces `INV-15` memory isolation between the writer agent and every attacker.
 ## Try it live
 
 **Live demo (TechEx 2026 judging window, May 14 – May 26):**
-[https://149.28.56.91.nip.io/](https://149.28.56.91.nip.io/)
+[https://www.apohara.dev](https://www.apohara.dev)
 
 Two zero-friction entry paths:
 
 - **Try with demo key** (no signup): click the "Try with demo key" button under the API-key field. Uses a server-side Gemini key shared across visitors, rate-limited to **5 calls per IP per UTC day**. Returns 429 with the next reset timestamp when you hit the cap.
 - **Bring your own Gemini key** (BYOK): paste your key — we never store it. Get one at [aistudio.google.com/apikey](https://aistudio.google.com/apikey); the free tier covers hundreds of verifications.
 
-Either path runs the same pipeline: 9-vendor adversarial attackers (Claude Opus 4.7, GPT-5.5, DeepSeek V4 Pro, MiniMax M2.7, Kimi K2.6, GLM 5.1, Qwen 3.6 Plus, Nemotron 3 Super 120B, Big Pickle) on our shared credit pool, INV-15 memory isolation enforced, SHA-256-signed verdict ledger.
+Either path runs the same pipeline: 9-vendor adversarial attackers (Claude Opus 4.7, GPT-5.5, DeepSeek V4 Pro, MiniMax M2.7, Kimi K2.6, GLM 5.1, Qwen 3.6 Plus, Nemotron 3 Super 120B, Big Pickle) on our shared credit pool, INV-15 memory isolation enforced, SHA-256-signed verdict ledger. The 12-vendor expansion (Mistral Large 2411, Grok 2, Perplexity Sonar) ships in `apohara-aegis` main; production rollout is the next deploy cycle.
 
-The demo URL uses [nip.io](https://nip.io) wildcard DNS pointing at
-our Vultr droplet (`149.28.56.91`), with Caddy auto-issued TLS via
-Let's Encrypt. We did NOT register `apohara-inti.dev`; if/when we do,
-this section will get the prettier URL.
+Frontend: `https://www.apohara.dev` (Vercel) → API: `https://api.apohara.dev` (Vultr droplet, Caddy auto-TLS via Let's Encrypt). Experimental Next.js SSR variant: [`https://apohara-nextjs.vercel.app`](https://apohara-nextjs.vercel.app).
 
-Backend health probe: `curl -sf https://149.28.56.91.nip.io/health`.
+Backend health probe: `curl -sf https://api.apohara.dev/health`.
 
 ---
 
@@ -40,7 +37,7 @@ Milan benchmark (`logs/milan_5agent_benchmark_1778943206.json` in the
 [sister repo](https://github.com/SuarezPM/Apohara_Context_Forge))
 reports **76% HBM saved per the closed-form model (CPU-mock fallback,
 H100 deferred)** — full honesty disclosure in the JSON `honesty_note`.
-13-page paper preprint at [`papers/inv15_v2.pdf`](https://github.com/SuarezPM/Apohara_Context_Forge/blob/main/papers/inv15_v2.pdf).
+Paper v3.0 at [`paper/inv15_paper.pdf`](https://github.com/SuarezPM/Apohara_Context_Forge/blob/main/paper/inv15_paper.pdf) (adds Z3 SMT formal proof, UNSAT in 10.08 ms).
 
 ---
 

@@ -3,7 +3,7 @@
 // Tailwind classes mirror the SPA tokens defined in tailwind.config.js
 // + app/globals.css so we inherit the same look without re-theming.
 
-const REPO_URL = "https://github.com/SuarezPM/apohara-inti";
+const REPO_URL = "https://github.com/SuarezPM/apohara-probant";
 const PAPER_DOI = "https://doi.org/10.5281/zenodo.20114594";
 const SPA_URL = "https://www.apohara.dev";
 
