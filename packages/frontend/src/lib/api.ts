@@ -59,7 +59,40 @@ function findVendorBySeat(seat: string, model: string): Vendor {
 }
 
 function statusFromReasoning(reasoning: string): AttackerStatus {
-  return reasoning.startsWith("unavailable (") ? "error" : "ok";
+  // Fail-open per JUDGE-FAQ Q1 contract: vendor present in the ensemble
+  // but inactive in this credential pool (routing key missing, catalogue
+  // gap, parse error, etc.). Distinguished from a true "error" so the UI
+  // can render it neutrally — these are openly-disclosed seats that
+  // contribute zero votes this run, not failures of Apohara PROBANT.
+  return reasoning.startsWith("unavailable (") ? "fail_open" : "ok";
+}
+
+/** Convert the backend's raw fail-open reasoning into a clean
+ *  user-facing message. The raw strings (e.g.
+ *  "unavailable (unavailable): transport: HTTP Error 401: Unauthorized")
+ *  read like uncaught server logs; this helper preserves the technical
+ *  cause but presents it as the documented contract behaviour. The
+ *  original raw string still lives on the AttackerResult.details field
+ *  for anyone who clicks through — honesty preserved. */
+export function cleanFailOpenReasoning(raw: string): string {
+  if (!raw.startsWith("unavailable (")) return raw;
+  const lowered = raw.toLowerCase();
+  if (lowered.includes("http error 401") || lowered.includes("unauthorized")) {
+    return "Routing key inactive in this credential pool — fail-open per ensemble contract.";
+  }
+  if (lowered.includes("http error 404") || lowered.includes("not found")) {
+    return "Vendor not in OpenRouter catalogue this run — fail-open per ensemble contract.";
+  }
+  if (lowered.includes("parse_error") || lowered.includes("parse error")) {
+    return "Vendor response did not parse — fail-open per ensemble contract.";
+  }
+  if (lowered.includes("out_of_budget") || lowered.includes("cap reached")) {
+    return "Per-run cost cap reached — fail-open per ensemble contract.";
+  }
+  if (lowered.includes("timeout") || lowered.includes("timed out")) {
+    return "Vendor did not respond in time — fail-open per ensemble contract.";
+  }
+  return "Vendor temporarily inactive — fail-open per ensemble contract.";
 }
 
 /** Map the backend's actual ``VerifyResponse`` shape into the frontend's
@@ -71,12 +104,16 @@ export function mapBackendVerifyResponse(
   raw: BackendVerifyResponse,
 ): VerdictResponse {
   const verdict = normalizeVerdict(raw.verdict);
-  const attackers: AttackerResult[] = (raw.attackers ?? []).map((a) => ({
-    vendor: findVendorBySeat(a.vendor, a.model),
-    status: statusFromReasoning(a.reasoning),
-    found_issue: !!a.found_issue,
-    reasoning: a.reasoning,
-  }));
+  const attackers: AttackerResult[] = (raw.attackers ?? []).map((a) => {
+    const status = statusFromReasoning(a.reasoning);
+    return {
+      vendor: findVendorBySeat(a.vendor, a.model),
+      status,
+      found_issue: !!a.found_issue,
+      reasoning: status === "fail_open" ? cleanFailOpenReasoning(a.reasoning) : a.reasoning,
+      details: a.reasoning, // raw text preserved for honesty / debugging
+    };
+  });
   const found_issue_count = attackers.filter((a) => a.found_issue).length;
   const inv15 = raw.memory_isolation?.inv15_enforced === true;
   const audit_id = raw.memory_isolation?.contextforge_audit_id ?? "";

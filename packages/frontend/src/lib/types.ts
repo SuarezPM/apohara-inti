@@ -15,7 +15,7 @@ export type Vendor = {
   seat: string;
 };
 
-export type AttackerStatus = "pending" | "running" | "ok" | "error";
+export type AttackerStatus = "pending" | "running" | "ok" | "error" | "fail_open";
 
 export type AttackerResult = {
   vendor: Vendor;

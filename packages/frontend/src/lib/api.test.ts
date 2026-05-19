@@ -53,7 +53,7 @@ describe("mapBackendVerifyResponse", () => {
     expect(mapped.reasoning_summary).toMatch(/verification passed/i);
   });
 
-  it("maps a blocked verdict to deny, synthesizes a fallback Vendor for unknown seats, and flags unavailable attackers as error", () => {
+  it("maps a blocked verdict to deny, synthesizes a fallback Vendor for unknown seats, and flags unavailable attackers as fail_open", () => {
     const raw: BackendVerifyResponse = {
       ...BACKEND_BASE,
       verdict: "blocked",
@@ -97,7 +97,10 @@ describe("mapBackendVerifyResponse", () => {
     expect(fallback.badge).toBe("FU");
     expect(fallback.model).toBe("future/future-model-x");
 
-    expect(mapped.attackers[2].status).toBe("error");
+    expect(mapped.attackers[2].status).toBe("fail_open");
     expect(mapped.attackers[2].found_issue).toBe(false);
+    // Reasoning rewritten to clean user-facing text; raw cause preserved in details.
+    expect(mapped.attackers[2].reasoning).toMatch(/cost cap.*fail-open per ensemble contract/i);
+    expect(mapped.attackers[2].details).toBe("unavailable (out_of_budget): cap reached for this run.");
   });
 });

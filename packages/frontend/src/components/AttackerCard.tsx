@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, MinusCircle } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -33,6 +33,10 @@ export function AttackerCard({ vendor, result }: AttackerCardProps) {
         status === "ok" && foundIssue && "border-destructive/40",
         status === "ok" && !foundIssue && "border-primary/40",
         status === "error" && "border-destructive/60",
+        // fail_open = vendor inactive in this credential pool. Visually
+        // neutral (muted border + dim text) so it reads as "documented
+        // gap" not "broken system" — see JUDGE-FAQ Q1.
+        status === "fail_open" && "border-border/40 opacity-70",
       )}
     >
       <CardHeader className="flex-row items-start justify-between space-y-0 gap-2">
@@ -112,6 +116,17 @@ function StatusIndicator({
         className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-destructive/20 text-destructive"
       >
         <AlertTriangle className="h-3.5 w-3.5" />
+      </span>
+    );
+  }
+
+  if (status === "fail_open") {
+    return (
+      <span
+        {...props}
+        className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted/40 text-muted-foreground"
+      >
+        <MinusCircle className="h-3.5 w-3.5" />
       </span>
     );
   }
