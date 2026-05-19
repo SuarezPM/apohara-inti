@@ -37,7 +37,7 @@ from pydantic import BaseModel, Field
 # On the production droplet PYTHONPATH includes /opt/apohara-aegis.
 # Locally: PYTHONPATH=.:/path/to/apohara-aegis
 # ---------------------------------------------------------------------------
-from apohara_aegis.djl import DjlEngine, DjlVerdict  # noqa: F401
+from apohara_aegis.djl import DjlEngine
 from apohara_aegis.taxonomy import IncidentCode, DEFINITIONS as TAXONOMY
 from apohara_aegis.templates import TEMPLATES
 from apohara_aegis.nist_mapping import CONTROLS as NIST_CONTROLS

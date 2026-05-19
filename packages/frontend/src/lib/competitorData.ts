@@ -27,8 +27,8 @@ export const TIER_1: Tier1Competitor[] = [
     name: "Apohara PROBANT",
     highlighted: true,
     vendors: {
-      value: "9",
-      source: "claude-opus-4.7, gpt-5.5, deepseek-v4-pro, kimi-k2.6, glm-5.1, qwen3.6-plus, nemotron-3-super-120b, minimax-m2.7, big-pickle (apohara-aegis/multi_judge.py)",
+      value: "12",
+      source: "claude-opus-4.7, gpt-5.5, deepseek-v4-pro, kimi-k2.6, glm-5.1, qwen3.6-plus, nemotron-3-super-120b, minimax-m2.7, mistral-large-2411, grok-2-1212, perplexity-sonar-large-128k, big-pickle (+1 Mythos reserved at index 13, INACTIVE) — apohara-aegis/multi_judge.py make_default_adapters()",
     },
     tests: {
       value: "150 funcs / 467 cases",

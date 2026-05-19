@@ -261,7 +261,7 @@ request triggers an inline DPI pre-check against the Lobster Trap proxy
 
 | Lobster Trap response | Backend behavior |
 |---|---|
-| Allow (2xx) | Continues to Gemini writer + 9-attacker pass; ledger entry records `dpi_check.source = "lobstertrap"` for the audit trail |
+| Allow (2xx) | Continues to Gemini writer + 12-vendor adversarial pass; ledger entry records `dpi_check.source = "lobstertrap"` for the audit trail |
 | Deny (403 or `id="lobstertrap-deny"` in body) | Short-circuits to `verdict="blocked"` with `attackers=[]`, `cost_estimate_usd=0`, INV-15 still enforced, ledger entry records the deny reason |
 | Unreachable (timeout / connect error) | Fail-open: continues current flow; ledger entry records `dpi_check.source = "unreachable-fallback"` (the 12-vendor ensemble is the primary safety layer, Lobster Trap is a fast perimeter pre-filter) |
 
