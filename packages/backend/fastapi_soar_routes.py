@@ -894,6 +894,34 @@ async def incident_stix_bundle(incident_id: str) -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
+# /v1/verdicts/{signed_hash}/verify-timestamp  (US-002 RFC 3161 TSA)
+# ---------------------------------------------------------------------------
+
+# Note: this endpoint lives outside the /v1/soar prefix; we register it on
+# the router with an absolute path override using a separate APIRouter below.
+# It is wired as a standalone route to keep the /v1/soar namespace clean.
+
+from fastapi import APIRouter as _APIRouter  # noqa: E402 (late import for namespace clarity)
+
+_verdicts_router = _APIRouter(tags=["verdicts"])
+
+
+@_verdicts_router.get("/v1/verdicts/{signed_hash}/verify-timestamp")
+async def verify_verdict_timestamp(signed_hash: str):
+    """Return RFC 3161 TSA timestamp verification result for a verdict.
+
+    US-002: verifies the TSA token stored in the verdict vault ledger
+    for the given signed_hash.  Returns 404 if the verdict is not found.
+    Returns {valid: false, error: "no_tsa_token"} if the verdict was
+    appended without request_tsa=True.
+    """
+    entry = _VAULT.read_entry(signed_hash)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="verdict not found")
+    return _VAULT.verify_tsa_token(entry)
+
+
+# ---------------------------------------------------------------------------
 # /v1/soar/metrics
 # ---------------------------------------------------------------------------
 

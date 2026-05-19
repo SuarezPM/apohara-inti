@@ -193,8 +193,9 @@ if _extra_origins:
         o.strip() for o in _extra_origins.split(",") if o.strip()
     )
 
-from fastapi_soar_routes import router as soar_router
+from fastapi_soar_routes import router as soar_router, _verdicts_router
 app.include_router(soar_router)
+app.include_router(_verdicts_router)
 
 app.add_middleware(
     CORSMiddleware,

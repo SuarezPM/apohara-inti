@@ -12,14 +12,19 @@ forensic auditors and the lablab.ai judges.
 Apohara Inti uses this so investors, judges, and end users can independently
 re-derive that a returned verdict matches what was originally emitted by the
 9-vendor ensemble — no trust-us layer.
+
+US-002: RFC 3161 TSA integration (Milan AI Week / CONSILIUM plan).
+TSA tokens are OPTIONAL and additive — the HMAC chain is unaffected.
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import json
 import os
 import secrets
+import urllib.request
 import warnings
 from pathlib import Path
 from typing import Any, Optional
@@ -96,7 +101,113 @@ class VerdictVault:
             return ZERO_HASH
         return last
 
-    def append(self, entry: dict[str, Any], tenant_id: Optional[str] = None) -> dict[str, str]:
+    # -----------------------------------------------------------------------
+    # US-002: RFC 3161 TSA integration
+    # -----------------------------------------------------------------------
+
+    _TSA_URLS: dict[str, str] = {
+        "freetsa": "https://freetsa.org/tsr",
+        "digicert": "http://timestamp.digicert.com",
+    }
+
+    def _request_tsa_token(
+        self, message_bytes: bytes, authority: str = "freetsa"
+    ) -> Optional[tuple[bytes, str]]:
+        """Request an RFC 3161 timestamp token from a TSA.
+
+        Args:
+            message_bytes: The bytes to timestamp (typically the signed_hash bytes).
+            authority: One of "freetsa" or "digicert".
+
+        Returns:
+            ``(token_der_bytes, iso_timestamp)`` on success; ``None`` on any failure.
+            Never raises — callers decide what to do on None.
+        """
+        url = self._TSA_URLS.get(authority)
+        if url is None:
+            return None
+        try:
+            from rfc3161_client import TimestampRequestBuilder, decode_timestamp_response  # noqa: PLC0415
+
+            builder = TimestampRequestBuilder()
+            request = builder.data(message_bytes).cert_request(True).build()
+            request_der = request.as_bytes()
+
+            req = urllib.request.Request(
+                url,
+                data=request_der,
+                headers={"Content-Type": "application/timestamp-query"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status != 200:
+                    return None
+                response_der = resp.read()
+
+            ts_response = decode_timestamp_response(response_der)
+            if ts_response.status != 0:
+                return None
+
+            # tst_info and gen_time are properties (not methods) on Rust-backed types.
+            tst_info = ts_response.tst_info
+            gen_time = tst_info.gen_time
+            iso_ts = gen_time.isoformat() if hasattr(gen_time, "isoformat") else str(gen_time)
+            # Store the full response DER (as_bytes) so verify_tsa_token can decode it.
+            return (ts_response.as_bytes(), iso_ts)
+        except Exception:  # noqa: BLE001
+            return None
+
+    def verify_tsa_token(self, entry: dict[str, Any]) -> dict[str, Any]:
+        """Parse and validate the RFC 3161 TSA token stored in a ledger entry.
+
+        Step 5a: verifies the token *exists and parses* cleanly.
+        TODO (US-002 Step 5b): also verify the token's message imprint
+        matches the entry's signed_hash bytes — a higher-assurance check
+        that the timestamp was issued for this specific verdict.
+
+        Args:
+            entry: A deserialized ledger entry dict.
+
+        Returns:
+            ``{"valid": bool, "authority": Optional[str], "timestamp": Optional[str],
+            "error": Optional[str]}``
+        """
+        if "tsa_token" not in entry or entry.get("tsa_status") == "unavailable":
+            return {
+                "valid": False,
+                "authority": None,
+                "timestamp": None,
+                "error": "no_tsa_token",
+            }
+        try:
+            from rfc3161_client import decode_timestamp_response  # noqa: PLC0415
+
+            token_bytes = base64.b64decode(entry["tsa_token"])
+            ts_response = decode_timestamp_response(token_bytes)
+            # tst_info and gen_time are properties on the Rust-backed types.
+            tst_info = ts_response.tst_info
+            gen_time = tst_info.gen_time
+            iso_ts = gen_time.isoformat() if hasattr(gen_time, "isoformat") else str(gen_time)
+            return {
+                "valid": True,
+                "authority": entry.get("tsa_authority"),
+                "timestamp": iso_ts,
+                "error": None,
+            }
+        except Exception as exc:  # noqa: BLE001
+            return {
+                "valid": False,
+                "authority": entry.get("tsa_authority"),
+                "timestamp": None,
+                "error": str(exc)[:200],
+            }
+
+    def append(
+        self,
+        entry: dict[str, Any],
+        tenant_id: Optional[str] = None,
+        request_tsa: bool = False,
+    ) -> dict[str, Any]:
         """Append entry with ``prev_hash`` + ``signed_hash`` + ``signature``.
 
         Optional *tenant_id* is included in the canonical payload so that
@@ -104,7 +215,13 @@ class VerdictVault:
         when *tenant_id* is ``None``, no field is added and the ledger format
         is identical to the pre-enterprise single-tenant format.
 
-        Returns the three derived fields so callers can echo them.
+        US-002: When *request_tsa* is ``True``, attempts to obtain an RFC 3161
+        timestamp token (freetsa first, digicert fallback).  TSA fields are
+        appended **after** ``signed_hash`` + ``signature`` are computed so they
+        do **not** affect the canonical hash.  On both TSA failures, writes
+        ``tsa_status="unavailable"`` and the HMAC chain is unaffected.
+
+        Returns the derived fields so callers can echo them.
         """
         self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
         prev_hash = self.read_last_hash()
@@ -119,13 +236,39 @@ class VerdictVault:
         payload["signed_hash"] = signed_hash
         signature = self._sign(canonical + signed_hash)
         payload["signature"] = signature
-        with self.ledger_path.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(payload, sort_keys=True) + "\n")
-        return {
+
+        result: dict[str, Any] = {
             "prev_hash": prev_hash,
             "signed_hash": signed_hash,
             "signature": signature,
         }
+
+        # TSA fields are added AFTER the canonical hash — they do not affect it.
+        if request_tsa:
+            message_bytes = signed_hash.encode("utf-8")
+            tsa_result = None
+            tsa_authority_used: Optional[str] = None
+            for authority in ("freetsa", "digicert"):
+                tsa_result = self._request_tsa_token(message_bytes, authority)
+                if tsa_result is not None:
+                    tsa_authority_used = authority
+                    break
+            if tsa_result is not None:
+                token_der, iso_ts = tsa_result
+                tsa_token_b64 = base64.b64encode(token_der).decode("ascii")
+                payload["tsa_token"] = tsa_token_b64
+                payload["tsa_authority"] = tsa_authority_used
+                payload["tsa_timestamp"] = iso_ts
+                result["tsa_token"] = tsa_token_b64
+                result["tsa_authority"] = tsa_authority_used
+                result["tsa_timestamp"] = iso_ts
+            else:
+                payload["tsa_status"] = "unavailable"
+                result["tsa_status"] = "unavailable"
+
+        with self.ledger_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(payload, sort_keys=True) + "\n")
+        return result
 
     def read_entry(self, signed_hash: str) -> Optional[dict[str, Any]]:
         """Find the ledger entry with the given ``signed_hash``; ``None`` if absent."""
@@ -185,9 +328,15 @@ class VerdictVault:
                             f"(expected {prev_hash}, got {entry.get('prev_hash')})"
                         )
                     # Re-derive signed_hash from canonical payload (strip derived fields).
+                    # US-002: also strip TSA fields — they are appended after the
+                    # canonical hash is computed and must not affect re-derivation.
                     redo = dict(entry)
                     redo.pop("signed_hash", None)
                     redo.pop("signature", None)
+                    redo.pop("tsa_token", None)
+                    redo.pop("tsa_authority", None)
+                    redo.pop("tsa_timestamp", None)
+                    redo.pop("tsa_status", None)
                     canonical = self._canonical(redo)
                     expected_hash = hashlib.sha256(
                         (prev_hash + canonical).encode("utf-8")
